@@ -156,7 +156,7 @@ def setext_heading_indexes(lines: list[str]) -> set[int]:
     for index in range(len(lines) - 1):
         title = lines[index].strip()
         underline = lines[index + 1].strip()
-        if title and re.fullmatch(r"=+", underline):
+        if title and re.fullmatch(r"(=+|-+)", underline):
             indexes.add(index)
     return indexes
 
