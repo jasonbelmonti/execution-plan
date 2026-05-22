@@ -26,6 +26,14 @@ PLACEHOLDER_TOKENS = (
 
 PLAN_VIABILITY_SECTION = "Plan Viability Review"
 PASS_DECISION = "pass"
+REQUIRED_VIABILITY_REVIEW_AREAS = (
+    "Source authority",
+    "Route feasibility",
+    "Dependency order",
+    "Validation evidence",
+    "Estimation readiness",
+    "Execution commitment",
+)
 
 
 def line_col(text: str, offset: int) -> tuple[int, int]:
@@ -135,6 +143,27 @@ def viability_diagnostics(text: str) -> list[dict[str, object]]:
                 "severity": "error",
             }
         ]
+
+    if "Review area" not in header:
+        return [
+            {
+                "code": "execution-plan.viabilityReviewAreaMissing",
+                "message": 'Plan Viability Review table must include a "Review area" column.',
+                "severity": "error",
+            }
+        ]
+
+    present_areas = {normalize_cell(row.get("Review area", "")) for row in rows}
+    for area in REQUIRED_VIABILITY_REVIEW_AREAS:
+        if normalize_cell(area) not in present_areas:
+            diagnostics.append(
+                {
+                    "code": "execution-plan.viabilityRequiredAreaMissing",
+                    "message": f'Plan Viability Review must include the required review area "{area}".',
+                    "severity": "error",
+                    "reviewArea": area,
+                }
+            )
 
     for index, row in enumerate(rows, start=1):
         decision = normalize_cell(row.get("Decision", ""))

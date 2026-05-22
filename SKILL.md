@@ -80,6 +80,7 @@ Review the drafted plan as a pre-execution gate before committing to implementat
 - verify validation gates can produce objective evidence for the success criteria
 - verify estimation inputs are concrete enough for proposal or diff-backed sizing
 - verify stop conditions catch missing sources, blockers, scope expansion, and failed validation
+- complete every required viability review area from the template; do not remove, collapse, or summarize the required rows
 - mark each `Plan Viability Review` row `pass`, `revise`, or `blocked`
 
 If any row is `revise`, revise the plan before validation. If any row is `blocked`, stop and return the artifact path, blocker, missing inputs, and next decision needed. Do not use a plan as execution context while the viability review is not fully `pass`.
