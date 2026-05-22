@@ -1,0 +1,178 @@
+syntaxVersion: markdown-engine.validation@v1
+documentVersion: 1.0.0
+rules:
+  - id: frontmatter.required
+    select:
+      target: document
+    assert:
+      frontmatterRequired:
+        fields:
+          - title
+          - plan_id
+          - artifact_version
+          - status
+          - created_at
+          - updated_at
+          - target_repo
+          - target_branch
+          - source_packet
+          - estimation_mode
+          - validation_profile
+
+  - id: sections.required
+    select:
+      target: document
+    assert:
+      sectionsRequired:
+        order: strict
+        headings:
+          - Objective
+          - Source Inventory
+          - Planning Constraints
+          - Target Completion Route
+          - Execution Steps
+          - File Touch Plan
+          - Estimation Inputs
+          - Validation Gates
+          - Stop Conditions
+          - Plan Readiness Check
+          - Review Handoff
+          - Revision Log
+
+  - id: source.inventory.table
+    select:
+      target: table
+      section: Source Inventory
+      header:
+        - Source
+        - Retrieved at
+        - Authority
+        - Status
+        - Plan impact
+    assert:
+      tableColumnsRequired:
+        columns:
+          - Source
+          - Retrieved at
+          - Authority
+          - Status
+          - Plan impact
+
+  - id: execution.steps.table
+    select:
+      target: table
+      section: Execution Steps
+      header:
+        - Step
+        - Action
+        - Target
+        - Depends on
+        - Evidence
+        - Stop condition
+    assert:
+      tableColumnsRequired:
+        columns:
+          - Step
+          - Action
+          - Target
+          - Depends on
+          - Evidence
+          - Stop condition
+
+  - id: file.touch.plan.table
+    select:
+      target: table
+      section: File Touch Plan
+      header:
+        - Path
+        - Change type
+        - Purpose
+        - Expected churn
+        - Risk notes
+    assert:
+      tableColumnsRequired:
+        columns:
+          - Path
+          - Change type
+          - Purpose
+          - Expected churn
+          - Risk notes
+
+  - id: estimation.inputs.table
+    select:
+      target: table
+      section: Estimation Inputs
+      header:
+        - Field
+        - Value
+        - Notes
+    assert:
+      tableColumnsRequired:
+        columns:
+          - Field
+          - Value
+          - Notes
+
+  - id: validation.gates.table
+    select:
+      target: table
+      section: Validation Gates
+      header:
+        - Gate
+        - Command or check
+        - Required evidence
+        - Owner
+    assert:
+      tableColumnsRequired:
+        columns:
+          - Gate
+          - Command or check
+          - Required evidence
+          - Owner
+
+  - id: revision.log.table
+    select:
+      target: table
+      section: Revision Log
+      header:
+        - Timestamp
+        - Actor
+        - Change
+        - Artifact checksum reference
+    assert:
+      tableColumnsRequired:
+        columns:
+          - Timestamp
+          - Actor
+          - Change
+          - Artifact checksum reference
+
+  - id: plan.readiness.table
+    select:
+      target: table
+      section: Plan Readiness Check
+      header:
+        - Check
+        - Requirement
+        - Evidence
+        - Status
+    assert:
+      tableColumnsRequired:
+        columns:
+          - Check
+          - Requirement
+          - Evidence
+          - Status
+
+  - id: unresolved.placeholders.excluded
+    select:
+      target: document
+    assert:
+      text:
+        excludes:
+          - "replace-with-command-or-manual-check"
+          - "/absolute/path"
+          - "/absolute/path/or/repo/relative/path"
+          - "Summarize the intended route"
+          - "State the concrete completion outcome"
+          - "Explain why this path is part of the route"
