@@ -115,7 +115,14 @@ def normalize_cell(value: str) -> str:
 
 def contains_placeholder_token(value: str, tokens: tuple[str, ...]) -> bool:
     normalized = normalize_cell(value)
-    return any(re.search(rf"\b{re.escape(token)}\b", normalized) for token in tokens)
+    compact = re.sub(r"[^a-z0-9]+", "", normalized)
+    compact_tokens = {"tbd", "todo", "tobedetermined"}
+    return any(
+        re.search(rf"\b{re.escape(token)}\b", normalized)
+        or re.sub(r"[^a-z0-9]+", "", token) in compact_tokens
+        and re.sub(r"[^a-z0-9]+", "", token) in compact
+        for token in tokens
+    )
 
 
 def evidence_is_missing(value: str) -> bool:
@@ -130,11 +137,28 @@ def split_table_row(line: str) -> list[str]:
     return [cell.strip() for cell in stripped.strip("|").split("|")]
 
 
+def heading_title(line: str) -> str | None:
+    match = re.match(r"^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$", line)
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
 def top_level_heading_title(line: str) -> str | None:
     match = re.match(r"^\s{0,3}#(?!#)\s+(.+?)\s*#*\s*$", line)
     if not match:
         return None
     return match.group(1).strip()
+
+
+def setext_heading_indexes(lines: list[str]) -> set[int]:
+    indexes: set[int] = set()
+    for index in range(len(lines) - 1):
+        title = lines[index].strip()
+        underline = lines[index + 1].strip()
+        if title and re.fullmatch(r"=+", underline):
+            indexes.add(index)
+    return indexes
 
 
 def section_lines(text: str, section_title: str) -> list[str]:
@@ -158,7 +182,15 @@ def section_lines(text: str, section_title: str) -> list[str]:
 
 
 def section_heading_count(text: str, section_title: str) -> int:
-    return sum(1 for line in text.splitlines() if top_level_heading_title(line) == section_title)
+    lines = text.splitlines()
+    setext_indexes = setext_heading_indexes(lines)
+    count = 0
+    for index, line in enumerate(lines):
+        if heading_title(line) == section_title:
+            count += 1
+        elif index in setext_indexes and line.strip() == section_title:
+            count += 1
+    return count
 
 
 def extract_tables(text: str, section_title: str) -> list[tuple[list[str], list[TableRow]]]:
