@@ -103,7 +103,8 @@ PLACEHOLDER_EVIDENCE_TOKENS = (
 MISSING_EVIDENCE_PATTERNS = (
     r"\bno\s+(?:evidence|proof)(?:\s+(?:provided|available|recorded|collected|exists))?\b",
     r"\bno\s+(?:attempt|attempts)\s+(?:is\s+|are\s+|was\s+|were\s+)?(?:made|performed|completed|recorded)\b",
-    r"\bno\s+(?:validation|verification|check|checks|test|tests|run|execution)\s+(?:is\s+|are\s+|was\s+|were\s+)?(?:run|performed|provided|available|completed|recorded|collected|executed|attempted|made)\b",
+    r"\bno\s+(?:validation|verification|check|checks|test|tests|run|execution)\s+(?:(?:is|are|was|were|has|have|had)\s+)?(?:been\s+)?(?:run|performed|provided|available|completed|recorded|collected|executed|attempted|made)\b",
+    r"\b(?:validation|verification|evidence|check|checks|test|tests|run|proof|execution|attempt)\s+(?:did\s+not|didn't|does\s+not|doesn't|do\s+not|don't)\s+(?:run|perform|provide|verify|validate|check|test|confirm|complete|record|collect|execute|attempt|make)\b",
     r"\b(?:validation|verification|evidence|check|checks|test|tests|run|proof|execution|attempt)\s+(?:is\s+|are\s+|was\s+|were\s+|has\s+|have\s+|has\s+been\s+|have\s+been\s+)?(?:not|never)\s+(?:yet\s+)?(?:been\s+)?(?:run|performed|provided|available|verified|validated|checked|tested|confirmed|completed|recorded|collected|executed|attempted|made|done)\b",
     r"\b(?:validation|verification|evidence|check|checks|test|tests|run|proof|execution|attempt)\s+(?:is\s+|are\s+|was\s+|were\s+|remains\s+)?(?:skipped|omitted|deferred|unavailable|missing|absent|incomplete|unverified|unvalidated|unchecked|untested|unconfirmed|unperformed|unexecuted|unattempted)\b",
     r"\b(?:i|we|agent|codex)\s+(?:did\s+not|didn't|could\s+not|couldn't|cannot|can't|failed\s+to|was\s+unable\s+to|were\s+unable\s+to)\s+(?:verify|validate|check|test|run|confirm|perform|execute|attempt|complete)\b",
