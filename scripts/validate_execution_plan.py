@@ -64,6 +64,7 @@ PLACEHOLDER_EVIDENCE_TOKENS = (
     "no evidence",
     "evidence missing",
     "missing evidence",
+    "not performed",
     "not available",
     "not checked",
     "not provided",
@@ -77,6 +78,12 @@ PLACEHOLDER_EVIDENCE_TOKENS = (
     "unknown",
     "pending",
     "later",
+)
+MISSING_EVIDENCE_PATTERNS = (
+    r"\bno\s+(?:evidence|proof)(?:\s+(?:provided|available|recorded|collected|exists))?\b",
+    r"\bno\s+(?:validation|verification|check|checks|test|tests|run)\s+(?:is\s+|are\s+|was\s+|were\s+)?(?:run|performed|provided|available|completed|recorded|collected)\b",
+    r"\b(?:validation|verification|evidence|check|checks|test|tests|run|proof)\s+(?:is\s+|are\s+|was\s+|were\s+|has\s+|have\s+|has\s+been\s+|have\s+been\s+)?not\s+(?:yet\s+)?(?:been\s+)?(?:run|performed|provided|available|verified|validated|checked|tested|confirmed|completed|recorded|collected)\b",
+    r"\bnot\s+(?:yet\s+)?(?:been\s+)?(?:run|performed|provided|available|verified|validated|checked|tested|confirmed|completed|recorded|collected)\b",
 )
 
 
@@ -130,6 +137,7 @@ def contains_placeholder_token(value: str, tokens: tuple[str, ...]) -> bool:
         "noevidence",
         "notavailable",
         "notchecked",
+        "notperformed",
         "notprovided",
         "notrun",
         "notverified",
@@ -147,7 +155,11 @@ def contains_placeholder_token(value: str, tokens: tuple[str, ...]) -> bool:
 
 def evidence_is_missing(value: str) -> bool:
     normalized = normalize_cell(value)
-    return normalized in MISSING_EVIDENCE_VALUES or contains_placeholder_token(value, PLACEHOLDER_EVIDENCE_TOKENS)
+    return (
+        normalized in MISSING_EVIDENCE_VALUES
+        or contains_placeholder_token(value, PLACEHOLDER_EVIDENCE_TOKENS)
+        or any(re.search(pattern, normalized) for pattern in MISSING_EVIDENCE_PATTERNS)
+    )
 
 
 def split_table_row(line: str) -> list[str]:
