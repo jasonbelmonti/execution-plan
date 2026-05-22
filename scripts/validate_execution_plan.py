@@ -61,6 +61,14 @@ MISSING_EVIDENCE_VALUES = (
     "todo.",
 )
 PLACEHOLDER_EVIDENCE_TOKENS = (
+    "no evidence",
+    "evidence missing",
+    "missing evidence",
+    "not available",
+    "not checked",
+    "not provided",
+    "not run",
+    "not verified",
     "todo",
     "tbd",
     "to be determined",
@@ -116,7 +124,19 @@ def normalize_cell(value: str) -> str:
 def contains_placeholder_token(value: str, tokens: tuple[str, ...]) -> bool:
     normalized = normalize_cell(value)
     compact = re.sub(r"[^a-z0-9]+", "", normalized)
-    compact_tokens = {"tbd", "todo", "tobedetermined"}
+    compact_tokens = {
+        "evidencemissing",
+        "missingevidence",
+        "noevidence",
+        "notavailable",
+        "notchecked",
+        "notprovided",
+        "notrun",
+        "notverified",
+        "tbd",
+        "todo",
+        "tobedetermined",
+    }
     return any(
         re.search(rf"\b{re.escape(token)}\b", normalized)
         or re.sub(r"[^a-z0-9]+", "", token) in compact_tokens
@@ -240,10 +260,15 @@ def extract_tables(text: str, section_title: str) -> list[tuple[list[str], list[
     return tables
 
 
+def table_like_line_count(text: str, section_title: str) -> int:
+    return sum(1 for line in section_lines(text, section_title) if split_table_row(line))
+
+
 def viability_diagnostics(text: str) -> list[dict[str, object]]:
     diagnostics: list[dict[str, object]] = []
     section_count = section_heading_count(text, PLAN_VIABILITY_SECTION)
     tables = extract_tables(text, PLAN_VIABILITY_SECTION)
+    section_table_line_count = table_like_line_count(text, PLAN_VIABILITY_SECTION)
 
     if section_count > 1:
         diagnostics.append(
@@ -280,6 +305,18 @@ def viability_diagnostics(text: str) -> list[dict[str, object]]:
     }
 
     header, rows = tables[0]
+    parsed_table_line_count = len(rows) + 2
+    if section_table_line_count != parsed_table_line_count:
+        diagnostics.append(
+            {
+                "code": "execution-plan.viabilityUnparsedTableRows",
+                "message": "Plan Viability Review must not contain table-like rows outside the single required table.",
+                "severity": "error",
+                "parsedTableLineCount": parsed_table_line_count,
+                "sectionTableLineCount": section_table_line_count,
+            }
+        )
+
     if header != list(REQUIRED_VIABILITY_COLUMNS):
         diagnostics.append(
             {
