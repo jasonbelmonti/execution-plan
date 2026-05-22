@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate an Execution Plan artifact with the profile and readiness guard."""
+"""Validate an Execution Plan artifact with profile, readiness, and viability guards."""
 
 from __future__ import annotations
 
@@ -23,6 +23,9 @@ PLACEHOLDER_TOKENS = (
     "State the concrete completion outcome",
     "Explain why this path is part of the route",
 )
+
+PLAN_VIABILITY_SECTION = "Plan Viability Review"
+PASS_DECISION = "pass"
 
 
 def line_col(text: str, offset: int) -> tuple[int, int]:
@@ -53,6 +56,99 @@ def placeholder_diagnostics(text: str) -> list[dict[str, object]]:
                 }
             )
             start = index + len(token)
+
+    return diagnostics
+
+
+def normalize_cell(value: str) -> str:
+    return " ".join(value.strip().strip("`").split()).lower()
+
+
+def split_table_row(line: str) -> list[str]:
+    stripped = line.strip()
+    if not stripped.startswith("|") or not stripped.endswith("|"):
+        return []
+    return [cell.strip() for cell in stripped.strip("|").split("|")]
+
+
+def section_lines(text: str, section_title: str) -> list[str]:
+    lines = text.splitlines()
+    start_index: int | None = None
+
+    for index, line in enumerate(lines):
+        if line.strip() == f"# {section_title}":
+            start_index = index + 1
+            break
+
+    if start_index is None:
+        return []
+
+    section: list[str] = []
+    for line in lines[start_index:]:
+        if line.startswith("# "):
+            break
+        section.append(line)
+    return section
+
+
+def extract_first_table(text: str, section_title: str) -> tuple[list[str], list[dict[str, str]]]:
+    lines = section_lines(text, section_title)
+    for index, line in enumerate(lines):
+        header = split_table_row(line)
+        if not header or index + 1 >= len(lines):
+            continue
+
+        separator = split_table_row(lines[index + 1])
+        if not separator or not all(set(cell.replace(":", "").strip()) <= {"-"} for cell in separator):
+            continue
+
+        rows: list[dict[str, str]] = []
+        for row_line in lines[index + 2:]:
+            cells = split_table_row(row_line)
+            if not cells:
+                break
+            padded = cells + [""] * max(0, len(header) - len(cells))
+            rows.append(dict(zip(header, padded)))
+        return header, rows
+
+    return [], []
+
+
+def viability_diagnostics(text: str) -> list[dict[str, object]]:
+    diagnostics: list[dict[str, object]] = []
+    header, rows = extract_first_table(text, PLAN_VIABILITY_SECTION)
+
+    if not header or not rows:
+        return [
+            {
+                "code": "execution-plan.viabilityReviewMissing",
+                "message": "Plan Viability Review must include at least one table row.",
+                "severity": "error",
+            }
+        ]
+
+    if "Decision" not in header:
+        return [
+            {
+                "code": "execution-plan.viabilityDecisionMissing",
+                "message": 'Plan Viability Review table must include a "Decision" column.',
+                "severity": "error",
+            }
+        ]
+
+    for index, row in enumerate(rows, start=1):
+        decision = normalize_cell(row.get("Decision", ""))
+        if decision != PASS_DECISION:
+            diagnostics.append(
+                {
+                    "code": "execution-plan.viabilityDecisionNotPass",
+                    "message": 'Plan Viability Review decisions must all be "pass" before execution commitment.',
+                    "severity": "error",
+                    "row": index,
+                    "decision": row.get("Decision", ""),
+                    "reviewArea": row.get("Review area", ""),
+                }
+            )
 
     return diagnostics
 
@@ -112,14 +208,16 @@ def main() -> int:
         return engine_exit or 1
 
     artifact_text = file_path.read_text(encoding="utf-8")
-    diagnostics = placeholder_diagnostics(artifact_text)
-    valid = not diagnostics
+    placeholder_results = placeholder_diagnostics(artifact_text)
+    viability_results = viability_diagnostics(artifact_text)
+    valid = not placeholder_results and not viability_results
     print(
         json.dumps(
             {
                 "valid": valid,
                 "markdownEngine": engine_result,
-                "placeholderDiagnostics": diagnostics,
+                "placeholderDiagnostics": placeholder_results,
+                "viabilityDiagnostics": viability_results,
             },
             indent=2,
         )

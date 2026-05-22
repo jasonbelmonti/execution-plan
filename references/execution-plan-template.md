@@ -77,6 +77,17 @@ First, load the controlling sources and current workspace state. Next, convert t
 - The expected file touch plan expands enough to change sizing or decomposition.
 - Required validation fails for reasons outside the current scope.
 
+# Plan Viability Review
+
+| Review area | Viability question | Evidence | Decision | Required revision |
+| --- | --- | --- | --- | --- |
+| Source authority | Are all material sources loaded or explicitly marked as missing? | Source Inventory lists controlling sources and statuses. | pass | None. |
+| Route feasibility | Can the route be executed with current access, dependencies, and constraints? | Target Completion Route and Planning Constraints identify no blocking gap. | pass | None. |
+| Dependency order | Are prerequisite inspections, changes, and validations sequenced before dependent work? | Execution Steps list dependencies and stop conditions. | pass | None. |
+| Validation evidence | Can the validation gates prove the intended outcome objectively? | Validation Gates identify commands or checks with required evidence. | pass | None. |
+| Estimation readiness | Can execution sizing derive proposal or diff inputs from the plan? | File Touch Plan and Estimation Inputs contain concrete values. | pass | None. |
+| Execution commitment | Is the plan ready to use as execution context without hidden blockers? | Stop Conditions and Review Handoff define blockers, scope, and evidence. | pass | None. |
+
 # Plan Readiness Check
 
 | Check | Requirement | Evidence | Status |
@@ -84,6 +95,7 @@ First, load the controlling sources and current workspace state. Next, convert t
 | Placeholder sweep | No unresolved template placeholders remain in the artifact. | Profile validation and manual scan completed. | pass |
 | Source completeness | Material sources are loaded or listed as missing inputs. | Source Inventory contains controlling sources and status. | pass |
 | Step specificity | Each execution step has an action, target, dependency, evidence, and stop condition. | Execution Steps table is complete. | pass |
+| Viability review | Plan viability is reviewed before execution commitment. | Plan Viability Review decisions are all pass. | pass |
 | Estimation readiness | File or diff inputs can be passed to an execution sizing workflow. | Estimation Inputs and File Touch Plan are complete. | pass |
 | Validation readiness | Required commands or manual checks have evidence expectations. | Validation Gates table is complete. | pass |
 
@@ -92,7 +104,7 @@ First, load the controlling sources and current workspace state. Next, convert t
 - Review boundary: Judge whether the current route satisfies the objective without requiring deferred enhancements.
 - Out of scope: Improvements not required for current completion.
 - Planned follow-up work: None identified in this sample.
-- Evidence to include: Validation output, checksum path, and target verification notes.
+- Evidence to include: Viability review, validation output, checksum path, and target verification notes.
 
 # Revision Log
 

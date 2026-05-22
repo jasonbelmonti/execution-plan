@@ -35,6 +35,7 @@ rules:
           - Estimation Inputs
           - Validation Gates
           - Stop Conditions
+          - Plan Viability Review
           - Plan Readiness Check
           - Review Handoff
           - Revision Log
@@ -163,6 +164,25 @@ rules:
           - Requirement
           - Evidence
           - Status
+
+  - id: plan.viability.review.table
+    select:
+      target: table
+      section: Plan Viability Review
+      header:
+        - Review area
+        - Viability question
+        - Evidence
+        - Decision
+        - Required revision
+    assert:
+      tableColumnsRequired:
+        columns:
+          - Review area
+          - Viability question
+          - Evidence
+          - Decision
+          - Required revision
 
   - id: unresolved.placeholders.excluded
     select:
