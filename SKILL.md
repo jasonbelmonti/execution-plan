@@ -80,7 +80,8 @@ Review the drafted plan as a pre-execution gate before committing to implementat
 - verify validation gates can produce objective evidence for the success criteria
 - verify estimation inputs are concrete enough for proposal or diff-backed sizing
 - verify stop conditions catch missing sources, blockers, scope expansion, and failed validation
-- complete every required viability review area from the template; do not remove, collapse, or summarize the required rows
+- complete every required viability review area from the template with the exact viability question text and concrete evidence
+- keep the viability review in one table; do not remove, collapse, summarize, or split the required rows
 - mark each `Plan Viability Review` row `pass`, `revise`, or `blocked`
 
 If any row is `revise`, revise the plan before validation. If any row is `blocked`, stop and return the artifact path, blocker, missing inputs, and next decision needed. Do not use a plan as execution context while the viability review is not fully `pass`.
@@ -93,7 +94,7 @@ Validate the artifact with the bundled validator:
 python3 <skill-dir>/scripts/validate_execution_plan.py --file ./.codex/execution-plans/<plan-id>/execution-plan.md
 ```
 
-The validator runs the bundled `@jasonbelmonti/markdown-engine` profile and then checks unresolved placeholders across the full raw artifact, including frontmatter. Use the wrapper as the approval gate because markdown-engine v1 profile text assertions do not inspect frontmatter values.
+The validator runs the bundled `@jasonbelmonti/markdown-engine` profile and then checks unresolved placeholders across the full raw artifact, including frontmatter. It also enforces one complete `Plan Viability Review` table with the required review areas, exact viability questions, non-empty evidence, non-empty required-revision cells, and passing decisions. Use the wrapper as the approval gate because markdown-engine v1 profile text assertions do not inspect frontmatter values or validate table-row semantics.
 
 Then write a checksum:
 

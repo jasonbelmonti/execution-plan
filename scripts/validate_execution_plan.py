@@ -26,13 +26,37 @@ PLACEHOLDER_TOKENS = (
 
 PLAN_VIABILITY_SECTION = "Plan Viability Review"
 PASS_DECISION = "pass"
-REQUIRED_VIABILITY_REVIEW_AREAS = (
-    "Source authority",
-    "Route feasibility",
-    "Dependency order",
-    "Validation evidence",
-    "Estimation readiness",
-    "Execution commitment",
+REQUIRED_VIABILITY_COLUMNS = (
+    "Review area",
+    "Viability question",
+    "Evidence",
+    "Decision",
+    "Required revision",
+)
+REQUIRED_VIABILITY_REVIEW_ITEMS = (
+    ("Source authority", "Are all material sources loaded or explicitly marked as missing?"),
+    ("Route feasibility", "Can the route be executed with current access, dependencies, and constraints?"),
+    (
+        "Dependency order",
+        "Are prerequisite inspections, changes, and validations sequenced before dependent work?",
+    ),
+    ("Validation evidence", "Can the validation gates prove the intended outcome objectively?"),
+    ("Estimation readiness", "Can execution sizing derive proposal or diff inputs from the plan?"),
+    ("Execution commitment", "Is the plan ready to use as execution context without hidden blockers?"),
+)
+MISSING_EVIDENCE_VALUES = (
+    "",
+    "-",
+    "n/a",
+    "n/a.",
+    "na",
+    "na.",
+    "none",
+    "none.",
+    "tbd",
+    "tbd.",
+    "todo",
+    "todo.",
 )
 
 
@@ -99,34 +123,45 @@ def section_lines(text: str, section_title: str) -> list[str]:
     return section
 
 
-def extract_first_table(text: str, section_title: str) -> tuple[list[str], list[dict[str, str]]]:
+def extract_tables(text: str, section_title: str) -> list[tuple[list[str], list[dict[str, str]]]]:
     lines = section_lines(text, section_title)
-    for index, line in enumerate(lines):
+    tables: list[tuple[list[str], list[dict[str, str]]]] = []
+    index = 0
+
+    while index < len(lines):
+        line = lines[index]
         header = split_table_row(line)
         if not header or index + 1 >= len(lines):
+            index += 1
             continue
 
         separator = split_table_row(lines[index + 1])
         if not separator or not all(set(cell.replace(":", "").strip()) <= {"-"} for cell in separator):
+            index += 1
             continue
 
         rows: list[dict[str, str]] = []
-        for row_line in lines[index + 2:]:
+        row_index = index + 2
+        while row_index < len(lines):
+            row_line = lines[row_index]
             cells = split_table_row(row_line)
             if not cells:
                 break
             padded = cells + [""] * max(0, len(header) - len(cells))
             rows.append(dict(zip(header, padded)))
-        return header, rows
+            row_index += 1
 
-    return [], []
+        tables.append((header, rows))
+        index = row_index + 1
+
+    return tables
 
 
 def viability_diagnostics(text: str) -> list[dict[str, object]]:
     diagnostics: list[dict[str, object]] = []
-    header, rows = extract_first_table(text, PLAN_VIABILITY_SECTION)
+    tables = extract_tables(text, PLAN_VIABILITY_SECTION)
 
-    if not header or not rows:
+    if not tables:
         return [
             {
                 "code": "execution-plan.viabilityReviewMissing",
@@ -135,37 +170,107 @@ def viability_diagnostics(text: str) -> list[dict[str, object]]:
             }
         ]
 
-    if "Decision" not in header:
-        return [
+    if len(tables) != 1:
+        diagnostics.append(
             {
-                "code": "execution-plan.viabilityDecisionMissing",
-                "message": 'Plan Viability Review table must include a "Decision" column.',
+                "code": "execution-plan.viabilityMultipleTables",
+                "message": "Plan Viability Review must contain exactly one table.",
                 "severity": "error",
+                "tableCount": len(tables),
             }
-        ]
+        )
 
-    if "Review area" not in header:
-        return [
-            {
-                "code": "execution-plan.viabilityReviewAreaMissing",
-                "message": 'Plan Viability Review table must include a "Review area" column.',
-                "severity": "error",
-            }
-        ]
+    expected_questions = {
+        normalize_cell(area): (area, question)
+        for area, question in REQUIRED_VIABILITY_REVIEW_ITEMS
+    }
 
-    present_areas = {normalize_cell(row.get("Review area", "")) for row in rows}
-    for area in REQUIRED_VIABILITY_REVIEW_AREAS:
-        if normalize_cell(area) not in present_areas:
+    header, rows = tables[0]
+    for column in REQUIRED_VIABILITY_COLUMNS:
+        if column not in header:
             diagnostics.append(
                 {
-                    "code": "execution-plan.viabilityRequiredAreaMissing",
-                    "message": f'Plan Viability Review must include the required review area "{area}".',
+                    "code": "execution-plan.viabilityColumnMissing",
+                    "message": f'Plan Viability Review table must include a "{column}" column.',
                     "severity": "error",
-                    "reviewArea": area,
+                    "column": column,
                 }
             )
 
+    if diagnostics and any(diagnostic["code"] == "execution-plan.viabilityColumnMissing" for diagnostic in diagnostics):
+        return diagnostics
+
+    if not rows:
+        diagnostics.append(
+            {
+                "code": "execution-plan.viabilityReviewMissing",
+                "message": "Plan Viability Review must include at least one table row.",
+                "severity": "error",
+            }
+        )
+
+    rows_by_area: dict[str, dict[str, str]] = {}
     for index, row in enumerate(rows, start=1):
+        review_area = row.get("Review area", "")
+        area_key = normalize_cell(review_area)
+        if not area_key:
+            diagnostics.append(
+                {
+                    "code": "execution-plan.viabilityReviewAreaBlank",
+                    "message": "Plan Viability Review rows must include a review area.",
+                    "severity": "error",
+                    "row": index,
+                }
+            )
+        elif area_key in rows_by_area:
+            diagnostics.append(
+                {
+                    "code": "execution-plan.viabilityDuplicateArea",
+                    "message": f'Plan Viability Review contains a duplicate review area "{review_area}".',
+                    "severity": "error",
+                    "row": index,
+                    "reviewArea": review_area,
+                }
+            )
+        else:
+            rows_by_area[area_key] = row
+
+        question = row.get("Viability question", "")
+        if not normalize_cell(question):
+            diagnostics.append(
+                {
+                    "code": "execution-plan.viabilityQuestionBlank",
+                    "message": "Plan Viability Review rows must include a viability question.",
+                    "severity": "error",
+                    "row": index,
+                    "reviewArea": review_area,
+                }
+            )
+
+        evidence = row.get("Evidence", "")
+        if normalize_cell(evidence) in MISSING_EVIDENCE_VALUES:
+            diagnostics.append(
+                {
+                    "code": "execution-plan.viabilityEvidenceBlank",
+                    "message": "Plan Viability Review rows must include concrete evidence.",
+                    "severity": "error",
+                    "row": index,
+                    "reviewArea": review_area,
+                }
+            )
+
+        required_revision = row.get("Required revision", "")
+        if not required_revision.strip():
+            diagnostics.append(
+                {
+                    "code": "execution-plan.viabilityRequiredRevisionBlank",
+                    "message": "Plan Viability Review rows must include a required revision value.",
+                    "severity": "error",
+                    "row": index,
+                    "reviewArea": review_area,
+                }
+            )
+
         decision = normalize_cell(row.get("Decision", ""))
         if decision != PASS_DECISION:
             diagnostics.append(
@@ -176,6 +281,32 @@ def viability_diagnostics(text: str) -> list[dict[str, object]]:
                     "row": index,
                     "decision": row.get("Decision", ""),
                     "reviewArea": row.get("Review area", ""),
+                }
+            )
+
+    for area_key, (area, expected_question) in expected_questions.items():
+        row = rows_by_area.get(area_key)
+        if row is None:
+            diagnostics.append(
+                {
+                    "code": "execution-plan.viabilityRequiredAreaMissing",
+                    "message": f'Plan Viability Review must include the required review area "{area}".',
+                    "severity": "error",
+                    "reviewArea": area,
+                }
+            )
+            continue
+
+        actual_question = row.get("Viability question", "")
+        if normalize_cell(actual_question) != normalize_cell(expected_question):
+            diagnostics.append(
+                {
+                    "code": "execution-plan.viabilityQuestionMismatch",
+                    "message": f'Plan Viability Review area "{area}" must use the required viability question.',
+                    "severity": "error",
+                    "reviewArea": area,
+                    "expectedQuestion": expected_question,
+                    "actualQuestion": actual_question,
                 }
             )
 
