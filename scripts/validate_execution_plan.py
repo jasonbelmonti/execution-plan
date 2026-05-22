@@ -132,9 +132,20 @@ def evidence_is_missing(value: str) -> bool:
 
 def split_table_row(line: str) -> list[str]:
     stripped = line.strip()
-    if not stripped.startswith("|") or not stripped.endswith("|"):
+    if "|" not in stripped:
         return []
-    return [cell.strip() for cell in stripped.strip("|").split("|")]
+    if stripped.startswith("|"):
+        stripped = stripped[1:]
+    if stripped.endswith("|"):
+        stripped = stripped[:-1]
+    cells = [cell.strip() for cell in stripped.split("|")]
+    return cells if len(cells) > 1 else []
+
+
+def normalize_heading_title(title: str | None) -> str | None:
+    if title is None:
+        return None
+    return normalize_cell(title)
 
 
 def heading_title(line: str) -> str | None:
@@ -164,9 +175,10 @@ def setext_heading_indexes(lines: list[str]) -> set[int]:
 def section_lines(text: str, section_title: str) -> list[str]:
     lines = text.splitlines()
     start_index: int | None = None
+    target_title = normalize_heading_title(section_title)
 
     for index, line in enumerate(lines):
-        if top_level_heading_title(line) == section_title:
+        if normalize_heading_title(top_level_heading_title(line)) == target_title:
             start_index = index + 1
             break
 
@@ -184,11 +196,12 @@ def section_lines(text: str, section_title: str) -> list[str]:
 def section_heading_count(text: str, section_title: str) -> int:
     lines = text.splitlines()
     setext_indexes = setext_heading_indexes(lines)
+    target_title = normalize_heading_title(section_title)
     count = 0
     for index, line in enumerate(lines):
-        if heading_title(line) == section_title:
+        if normalize_heading_title(heading_title(line)) == target_title:
             count += 1
-        elif index in setext_indexes and line.strip() == section_title:
+        elif index in setext_indexes and normalize_heading_title(line.strip()) == target_title:
             count += 1
     return count
 
