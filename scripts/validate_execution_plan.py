@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -58,6 +59,16 @@ MISSING_EVIDENCE_VALUES = (
     "todo",
     "todo.",
 )
+PLACEHOLDER_EVIDENCE_TOKENS = (
+    "todo",
+    "tbd",
+    "to be determined",
+    "placeholder",
+    "replace",
+    "unknown",
+    "pending",
+    "later",
+)
 
 
 def line_col(text: str, offset: int) -> tuple[int, int]:
@@ -96,6 +107,16 @@ def normalize_cell(value: str) -> str:
     return " ".join(value.strip().strip("`").split()).lower()
 
 
+def contains_placeholder_token(value: str, tokens: tuple[str, ...]) -> bool:
+    normalized = normalize_cell(value)
+    return any(re.search(rf"\b{re.escape(token)}\b", normalized) for token in tokens)
+
+
+def evidence_is_missing(value: str) -> bool:
+    normalized = normalize_cell(value)
+    return normalized in MISSING_EVIDENCE_VALUES or contains_placeholder_token(value, PLACEHOLDER_EVIDENCE_TOKENS)
+
+
 def split_table_row(line: str) -> list[str]:
     stripped = line.strip()
     if not stripped.startswith("|") or not stripped.endswith("|"):
@@ -121,6 +142,10 @@ def section_lines(text: str, section_title: str) -> list[str]:
             break
         section.append(line)
     return section
+
+
+def section_heading_count(text: str, section_title: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == f"# {section_title}")
 
 
 def extract_tables(text: str, section_title: str) -> list[tuple[list[str], list[dict[str, str]]]]:
@@ -159,7 +184,18 @@ def extract_tables(text: str, section_title: str) -> list[tuple[list[str], list[
 
 def viability_diagnostics(text: str) -> list[dict[str, object]]:
     diagnostics: list[dict[str, object]] = []
+    section_count = section_heading_count(text, PLAN_VIABILITY_SECTION)
     tables = extract_tables(text, PLAN_VIABILITY_SECTION)
+
+    if section_count > 1:
+        diagnostics.append(
+            {
+                "code": "execution-plan.viabilityMultipleSections",
+                "message": "Plan Viability Review must appear exactly once.",
+                "severity": "error",
+                "sectionCount": section_count,
+            }
+        )
 
     if not tables:
         return [
@@ -248,7 +284,7 @@ def viability_diagnostics(text: str) -> list[dict[str, object]]:
             )
 
         evidence = row.get("Evidence", "")
-        if normalize_cell(evidence) in MISSING_EVIDENCE_VALUES:
+        if evidence_is_missing(evidence):
             diagnostics.append(
                 {
                     "code": "execution-plan.viabilityEvidenceBlank",

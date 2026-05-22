@@ -94,7 +94,7 @@ Validate the artifact with the bundled validator:
 python3 <skill-dir>/scripts/validate_execution_plan.py --file ./.codex/execution-plans/<plan-id>/execution-plan.md
 ```
 
-The validator runs the bundled `@jasonbelmonti/markdown-engine` profile and then checks unresolved placeholders across the full raw artifact, including frontmatter. It also enforces one complete `Plan Viability Review` table with the required review areas, exact viability questions, non-empty evidence, non-empty required-revision cells, and passing decisions. Use the wrapper as the approval gate because markdown-engine v1 profile text assertions do not inspect frontmatter values or validate table-row semantics.
+The validator runs the bundled `@jasonbelmonti/markdown-engine` profile and then checks unresolved placeholders across the full raw artifact, including frontmatter. It also enforces one `Plan Viability Review` section, one complete viability table with the required review areas, exact viability questions, concrete non-placeholder evidence, non-empty required-revision cells, and passing decisions. Use the wrapper as the approval gate because markdown-engine v1 profile text assertions do not inspect frontmatter values or validate table-row semantics.
 
 Then write a checksum:
 
