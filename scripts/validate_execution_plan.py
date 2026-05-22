@@ -61,15 +61,29 @@ MISSING_EVIDENCE_VALUES = (
     "todo.",
 )
 PLACEHOLDER_EVIDENCE_TOKENS = (
+    "could not verify",
+    "could not validate",
     "no evidence",
     "evidence missing",
+    "failed to verify",
+    "failed to validate",
     "missing evidence",
     "not performed",
     "not available",
     "not checked",
+    "not executed",
     "not provided",
     "not run",
     "not verified",
+    "unable to verify",
+    "unable to validate",
+    "unconfirmed",
+    "unchecked",
+    "unexecuted",
+    "unperformed",
+    "untested",
+    "unvalidated",
+    "unverified",
     "todo",
     "tbd",
     "to be determined",
@@ -81,9 +95,13 @@ PLACEHOLDER_EVIDENCE_TOKENS = (
 )
 MISSING_EVIDENCE_PATTERNS = (
     r"\bno\s+(?:evidence|proof)(?:\s+(?:provided|available|recorded|collected|exists))?\b",
-    r"\bno\s+(?:validation|verification|check|checks|test|tests|run)\s+(?:is\s+|are\s+|was\s+|were\s+)?(?:run|performed|provided|available|completed|recorded|collected)\b",
-    r"\b(?:validation|verification|evidence|check|checks|test|tests|run|proof)\s+(?:is\s+|are\s+|was\s+|were\s+|has\s+|have\s+|has\s+been\s+|have\s+been\s+)?not\s+(?:yet\s+)?(?:been\s+)?(?:run|performed|provided|available|verified|validated|checked|tested|confirmed|completed|recorded|collected)\b",
-    r"\bnot\s+(?:yet\s+)?(?:been\s+)?(?:run|performed|provided|available|verified|validated|checked|tested|confirmed|completed|recorded|collected)\b",
+    r"\bno\s+(?:validation|verification|check|checks|test|tests|run|execution)\s+(?:is\s+|are\s+|was\s+|were\s+)?(?:run|performed|provided|available|completed|recorded|collected|executed)\b",
+    r"\b(?:validation|verification|evidence|check|checks|test|tests|run|proof|execution)\s+(?:is\s+|are\s+|was\s+|were\s+|has\s+|have\s+|has\s+been\s+|have\s+been\s+)?(?:not|never)\s+(?:yet\s+)?(?:been\s+)?(?:run|performed|provided|available|verified|validated|checked|tested|confirmed|completed|recorded|collected|executed)\b",
+    r"\b(?:validation|verification|evidence|check|checks|test|tests|run|proof|execution)\s+(?:is\s+|are\s+|was\s+|were\s+|remains\s+)?(?:skipped|unavailable|missing|absent|incomplete|unverified|unvalidated|unchecked|untested|unconfirmed|unperformed|unexecuted)\b",
+    r"\b(?:i|we|agent|codex)\s+(?:did\s+not|didn't|could\s+not|couldn't|cannot|can't|failed\s+to|was\s+unable\s+to|were\s+unable\s+to)\s+(?:verify|validate|check|test|run|confirm|perform|execute)\b",
+    r"\b(?:could\s+not|couldn't|cannot|can't|failed\s+to|unable\s+to)\s+(?:verify|validate|check|test|run|confirm|perform|execute)\b",
+    r"\b(?:hasn't|haven't|wasn't|weren't|isn't|aren't)\s+(?:been\s+)?(?:verified|validated|checked|tested|confirmed|run|performed|executed|completed|recorded|collected)\b",
+    r"\bnot\s+(?:yet\s+)?(?:been\s+)?(?:run|performed|provided|available|verified|validated|checked|tested|confirmed|completed|recorded|collected|executed)\b",
 )
 
 
