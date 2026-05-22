@@ -72,11 +72,13 @@ Apply these rules:
 
 ### Step 5: Validate and checksum the artifact
 
-Validate the artifact with the bundled profile:
+Validate the artifact with the bundled validator:
 
 ```bash
-npx -y @jasonbelmonti/markdown-engine@2.0.0 validate --file ./.codex/execution-plans/<plan-id>/execution-plan.md --profile <skill-dir>/profiles/execution-plan.yaml
+python3 <skill-dir>/scripts/validate_execution_plan.py --file ./.codex/execution-plans/<plan-id>/execution-plan.md
 ```
+
+The validator runs the bundled `@jasonbelmonti/markdown-engine` profile and then checks unresolved placeholders across the full raw artifact, including frontmatter. Use the wrapper as the approval gate because markdown-engine v1 profile text assertions do not inspect frontmatter values.
 
 Then write a checksum:
 
@@ -108,6 +110,7 @@ Before handing off, verify that the artifact answers:
 - What inputs can inform execution sizing?
 - What validation proves success?
 - Does the `Plan Readiness Check` show that placeholders were removed, sources are complete, steps are specific, and estimation inputs are usable?
+- Does the bundled validator pass, including the full-document placeholder guard?
 - What is out of scope or deferred?
 - When should an agent stop and ask for direction?
 
@@ -132,3 +135,4 @@ Always:
 
 - Use [references/execution-plan-template.md](references/execution-plan-template.md) as the required artifact structure.
 - Use [profiles/execution-plan.yaml](profiles/execution-plan.yaml) as the markdown-engine validation profile.
+- Use [scripts/validate_execution_plan.py](scripts/validate_execution_plan.py) as the required validation wrapper.

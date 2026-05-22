@@ -9,7 +9,7 @@ target_repo: "/tmp/example-target-repo"
 target_branch: "main"
 source_packet: "current-thread"
 estimation_mode: "proposal"
-validation_profile: "<skill-dir>/profiles/execution-plan.yaml"
+validation_profile: "profiles/execution-plan.yaml"
 ---
 
 # Objective
@@ -66,7 +66,7 @@ First, load the controlling sources and current workspace state. Next, convert t
 
 | Gate | Command or check | Required evidence | Owner |
 | --- | --- | --- | --- |
-| Plan profile validation | `npx -y @jasonbelmonti/markdown-engine@2.0.0 validate --file ./.codex/execution-plans/sample-plan/execution-plan.md --profile <skill-dir>/profiles/execution-plan.yaml` | Validation passes before handoff. | codex |
+| Plan validation wrapper | `python3 scripts/validate_execution_plan.py --file ./.codex/execution-plans/sample-plan/execution-plan.md` | Wrapper validation passes before handoff, including markdown-engine profile validation and full-document placeholder checks. | codex |
 | Target verification | Run the target repository checks named by the source context. | Evidence proves the objective inside the stated route. | codex |
 
 # Stop Conditions
