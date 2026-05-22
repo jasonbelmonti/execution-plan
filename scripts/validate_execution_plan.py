@@ -9,6 +9,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import TypedDict
 
 
 PLACEHOLDER_TOKENS = (
@@ -71,6 +72,11 @@ PLACEHOLDER_EVIDENCE_TOKENS = (
 )
 
 
+class TableRow(TypedDict):
+    cells: list[str]
+    values: dict[str, str]
+
+
 def line_col(text: str, offset: int) -> tuple[int, int]:
     line = text.count("\n", 0, offset) + 1
     line_start = text.rfind("\n", 0, offset) + 1
@@ -124,12 +130,19 @@ def split_table_row(line: str) -> list[str]:
     return [cell.strip() for cell in stripped.strip("|").split("|")]
 
 
+def top_level_heading_title(line: str) -> str | None:
+    match = re.match(r"^\s{0,3}#(?!#)\s+(.+?)\s*#*\s*$", line)
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
 def section_lines(text: str, section_title: str) -> list[str]:
     lines = text.splitlines()
     start_index: int | None = None
 
     for index, line in enumerate(lines):
-        if line.strip() == f"# {section_title}":
+        if top_level_heading_title(line) == section_title:
             start_index = index + 1
             break
 
@@ -138,19 +151,19 @@ def section_lines(text: str, section_title: str) -> list[str]:
 
     section: list[str] = []
     for line in lines[start_index:]:
-        if line.startswith("# "):
+        if top_level_heading_title(line) is not None:
             break
         section.append(line)
     return section
 
 
 def section_heading_count(text: str, section_title: str) -> int:
-    return sum(1 for line in text.splitlines() if line.strip() == f"# {section_title}")
+    return sum(1 for line in text.splitlines() if top_level_heading_title(line) == section_title)
 
 
-def extract_tables(text: str, section_title: str) -> list[tuple[list[str], list[dict[str, str]]]]:
+def extract_tables(text: str, section_title: str) -> list[tuple[list[str], list[TableRow]]]:
     lines = section_lines(text, section_title)
-    tables: list[tuple[list[str], list[dict[str, str]]]] = []
+    tables: list[tuple[list[str], list[TableRow]]] = []
     index = 0
 
     while index < len(lines):
@@ -165,7 +178,7 @@ def extract_tables(text: str, section_title: str) -> list[tuple[list[str], list[
             index += 1
             continue
 
-        rows: list[dict[str, str]] = []
+        rows: list[TableRow] = []
         row_index = index + 2
         while row_index < len(lines):
             row_line = lines[row_index]
@@ -173,7 +186,7 @@ def extract_tables(text: str, section_title: str) -> list[tuple[list[str], list[
             if not cells:
                 break
             padded = cells + [""] * max(0, len(header) - len(cells))
-            rows.append(dict(zip(header, padded)))
+            rows.append({"cells": cells, "values": dict(zip(header, padded))})
             row_index += 1
 
         tables.append((header, rows))
@@ -222,6 +235,29 @@ def viability_diagnostics(text: str) -> list[dict[str, object]]:
     }
 
     header, rows = tables[0]
+    if header != list(REQUIRED_VIABILITY_COLUMNS):
+        diagnostics.append(
+            {
+                "code": "execution-plan.viabilityHeaderMismatch",
+                "message": "Plan Viability Review table header must exactly match the required columns.",
+                "severity": "error",
+                "expectedHeader": list(REQUIRED_VIABILITY_COLUMNS),
+                "actualHeader": header,
+            }
+        )
+
+    normalized_header = [normalize_cell(column) for column in header]
+    duplicate_columns = sorted({column for column in normalized_header if normalized_header.count(column) > 1})
+    for column in duplicate_columns:
+        diagnostics.append(
+            {
+                "code": "execution-plan.viabilityDuplicateColumn",
+                "message": f'Plan Viability Review table contains a duplicate column "{column}".',
+                "severity": "error",
+                "column": column,
+            }
+        )
+
     for column in REQUIRED_VIABILITY_COLUMNS:
         if column not in header:
             diagnostics.append(
@@ -233,7 +269,15 @@ def viability_diagnostics(text: str) -> list[dict[str, object]]:
                 }
             )
 
-    if diagnostics and any(diagnostic["code"] == "execution-plan.viabilityColumnMissing" for diagnostic in diagnostics):
+    if diagnostics and any(
+        diagnostic["code"]
+        in {
+            "execution-plan.viabilityColumnMissing",
+            "execution-plan.viabilityDuplicateColumn",
+            "execution-plan.viabilityHeaderMismatch",
+        }
+        for diagnostic in diagnostics
+    ):
         return diagnostics
 
     if not rows:
@@ -246,7 +290,20 @@ def viability_diagnostics(text: str) -> list[dict[str, object]]:
         )
 
     rows_by_area: dict[str, dict[str, str]] = {}
-    for index, row in enumerate(rows, start=1):
+    for index, table_row in enumerate(rows, start=1):
+        if len(table_row["cells"]) != len(header):
+            diagnostics.append(
+                {
+                    "code": "execution-plan.viabilityRowCellCountMismatch",
+                    "message": "Plan Viability Review rows must have exactly the same number of cells as the header.",
+                    "severity": "error",
+                    "row": index,
+                    "expectedCellCount": len(header),
+                    "actualCellCount": len(table_row["cells"]),
+                }
+            )
+
+        row = table_row["values"]
         review_area = row.get("Review area", "")
         area_key = normalize_cell(review_area)
         if not area_key:
