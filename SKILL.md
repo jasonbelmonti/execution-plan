@@ -1,6 +1,6 @@
 ---
 name: execution-plan
-description: Create validated Execution Plan artifacts that translate source-grounded execution context, handoff artifacts, task packets, planning notes, or implementation intent into concrete ordered steps, file-touch plans, validation gates, stop conditions, and estimator-ready inputs. Use when Codex needs to make the route to task completion specific before implementation, derive proposal inputs for execution sizing, sequence work for another agent, or turn a high-level objective into materially executable actions.
+description: Create validated Execution Plan artifacts that translate source-grounded execution context, handoff artifacts, task packets, planning notes, or implementation intent into concrete ordered steps, file-touch plans, validation gates, stop conditions, viability review gates, and estimator-ready inputs. Use when Codex needs to make the route to task completion specific before implementation, review whether a plan is viable before committing to execution, derive proposal inputs for execution sizing, sequence work for another agent, or turn a high-level objective into materially executable actions.
 ---
 
 # Execution Plan
@@ -65,12 +65,30 @@ Apply these rules:
 - keep the route sequential and executable
 - make each step evidence-producing
 - include an `Estimation Inputs` section with enough data to derive a newline-delimited proposed file list or diff-backed sizing command
+- include a `Plan Viability Review` section that evaluates whether the route is executable before execution starts
 - include planned follow-up work only when it is non-blocking for the current route
 - update `Revision Log` for every intentional artifact revision
 - record the artifact checksum by referencing the separate `.sha256` file or by marking the current row `pending`; do not embed a current digest inside the artifact when doing so would change that digest
 - do not silently rewrite the objective, constraints, or stop conditions
 
-### Step 5: Validate and checksum the artifact
+### Step 5: Review plan viability
+
+Review the drafted plan with an LLM-as-judge pass before committing to implementation. Read the plan as if it were being handed to an executor and look for contradictions, conflicts, missing prerequisites, bad sequencing, unverifiable gates, hidden blockers, or assumptions that could prevent the route from working.
+
+Use the `Plan Viability Review` table to record that judgment:
+
+- evaluate the route against the loaded sources, current access, dependencies, and constraints
+- check whether prerequisite inspections, changes, and validations are sequenced before dependent work
+- check whether validation gates can objectively prove the intended outcome
+- check whether estimation inputs are concrete enough for proposal or diff-backed sizing
+- check whether stop conditions catch missing sources, blockers, scope expansion, and failed validation
+- complete every required viability review area from the template with the exact viability question text
+- record concise reviewer notes that explain the LLM judge result for each area
+- mark each row `pass`, `revise`, or `blocked`
+
+If any row is `revise`, revise the plan before validation. If any row is `blocked`, stop and return the artifact path, blocker, missing inputs, and next decision needed. Do not use a plan as execution context while the viability review is not fully `pass`.
+
+### Step 6: Validate and checksum the artifact
 
 Validate the artifact with the bundled validator:
 
@@ -78,7 +96,7 @@ Validate the artifact with the bundled validator:
 python3 <skill-dir>/scripts/validate_execution_plan.py --file ./.codex/execution-plans/<plan-id>/execution-plan.md
 ```
 
-The validator runs the bundled `@jasonbelmonti/markdown-engine` profile and then checks unresolved placeholders across the full raw artifact, including frontmatter. Use the wrapper as the approval gate because markdown-engine v1 profile text assertions do not inspect frontmatter values.
+The validator runs the bundled `@jasonbelmonti/markdown-engine` profile and then checks unresolved placeholders across the full raw artifact, including frontmatter. The validator is a structural gate; it does not decide whether the plan is viable. The LLM review pass in Step 5 owns that qualitative judgment.
 
 Then write a checksum:
 
@@ -90,7 +108,7 @@ If validation fails, revise the artifact before using it as execution context.
 
 Use the separate `.sha256` file as the checksum source of truth for the current artifact. The revision log may reference that file, record a previous checksum, or use `pending` while the current checksum is being written.
 
-### Step 6: Prepare estimation inputs
+### Step 7: Prepare estimation inputs
 
 Make the plan useful for execution sizing without requiring a sizing tool to parse prose:
 
@@ -99,7 +117,7 @@ Make the plan useful for execution sizing without requiring a sizing tool to par
 - include a defensible `proposalLinesChanged` value only when the file list materially understates or overstates expected churn
 - record uncertainty in `Risk notes` or `Stop Conditions` instead of inflating the plan
 
-### Step 7: Perform a quality check
+### Step 8: Perform a quality check
 
 Before handing off, verify that the artifact answers:
 
@@ -108,6 +126,7 @@ Before handing off, verify that the artifact answers:
 - What exact route should execution follow?
 - What files or artifacts are expected to change?
 - What inputs can inform execution sizing?
+- Did the viability review pass before execution commitment?
 - What validation proves success?
 - Does the `Plan Readiness Check` show that placeholders were removed, sources are complete, steps are specific, and estimation inputs are usable?
 - Does the bundled validator pass, including the full-document placeholder guard?
@@ -126,6 +145,7 @@ Always:
 - make the first action executable
 - keep each step tied to evidence
 - include estimator-ready file or diff inputs
+- include a completed viability review with passing decisions before execution handoff
 - include completed plan readiness checks
 - include validation gates and stop conditions
 - keep the revision log current

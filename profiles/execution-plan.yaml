@@ -35,6 +35,7 @@ rules:
           - Estimation Inputs
           - Validation Gates
           - Stop Conditions
+          - Plan Viability Review
           - Plan Readiness Check
           - Review Handoff
           - Revision Log
@@ -163,6 +164,67 @@ rules:
           - Requirement
           - Evidence
           - Status
+
+  - id: plan.viability.review.table
+    select:
+      target: table
+      section: Plan Viability Review
+      header:
+        - Review area
+        - Viability question
+        - Reviewer notes
+        - Decision
+        - Required revision
+    assert:
+      tableColumnsRequired:
+        columns:
+          - Review area
+          - Viability question
+          - Reviewer notes
+          - Decision
+          - Required revision
+
+  - id: plan.viability.required-question.source-authority
+    select:
+      target: document
+    assert:
+      text:
+        contains: "Are all material sources loaded or explicitly marked as missing?"
+
+  - id: plan.viability.required-question.route-feasibility
+    select:
+      target: document
+    assert:
+      text:
+        contains: "Can the route be executed with current access, dependencies, and constraints?"
+
+  - id: plan.viability.required-question.dependency-order
+    select:
+      target: document
+    assert:
+      text:
+        contains: "Are prerequisite inspections, changes, and validations sequenced before dependent work?"
+
+  - id: plan.viability.required-question.validation-evidence
+    select:
+      target: document
+    assert:
+      text:
+        contains: "Can the validation gates prove the intended outcome objectively?"
+
+  - id: plan.viability.required-question.estimation-readiness
+    select:
+      target: document
+    assert:
+      text:
+        contains: "Can execution sizing derive proposal or diff inputs from the plan?"
+
+  - id: plan.viability.required-question.execution-commitment
+    select:
+      target: document
+    assert:
+      text:
+        contains: "Is the plan ready to use as execution context without hidden blockers?"
 
   - id: unresolved.placeholders.excluded
     select:

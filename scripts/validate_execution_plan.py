@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate an Execution Plan artifact with the profile and readiness guard."""
+"""Validate an Execution Plan artifact with the profile and placeholder guard."""
 
 from __future__ import annotations
 
@@ -112,14 +112,14 @@ def main() -> int:
         return engine_exit or 1
 
     artifact_text = file_path.read_text(encoding="utf-8")
-    diagnostics = placeholder_diagnostics(artifact_text)
-    valid = not diagnostics
+    placeholder_results = placeholder_diagnostics(artifact_text)
+    valid = not placeholder_results
     print(
         json.dumps(
             {
                 "valid": valid,
                 "markdownEngine": engine_result,
-                "placeholderDiagnostics": diagnostics,
+                "placeholderDiagnostics": placeholder_results,
             },
             indent=2,
         )
