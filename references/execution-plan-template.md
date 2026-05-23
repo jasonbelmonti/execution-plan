@@ -79,14 +79,14 @@ First, load the controlling sources and current workspace state. Next, convert t
 
 # Plan Viability Review
 
-| Review area | Viability question | Evidence | Decision | Required revision |
+| Review area | Viability question | Reviewer notes | Decision | Required revision |
 | --- | --- | --- | --- | --- |
-| Source authority | Are all material sources loaded or explicitly marked as missing? | Source Inventory lists controlling sources and statuses. | pass | None. |
-| Route feasibility | Can the route be executed with current access, dependencies, and constraints? | Target Completion Route and Planning Constraints identify no blocking gap. | pass | None. |
-| Dependency order | Are prerequisite inspections, changes, and validations sequenced before dependent work? | Execution Steps list dependencies and stop conditions. | pass | None. |
-| Validation evidence | Can the validation gates prove the intended outcome objectively? | Validation Gates identify commands or checks with required evidence. | pass | None. |
-| Estimation readiness | Can execution sizing derive proposal or diff inputs from the plan? | File Touch Plan and Estimation Inputs contain concrete values. | pass | None. |
-| Execution commitment | Is the plan ready to use as execution context without hidden blockers? | Stop Conditions and Review Handoff define blockers, scope, and evidence. | pass | None. |
+| Source authority | Are all material sources loaded or explicitly marked as missing? | No source contradiction or missing controlling input is visible in this sample. | pass | None. |
+| Route feasibility | Can the route be executed with current access, dependencies, and constraints? | The route fits the stated constraints and names no unresolved access blocker. | pass | None. |
+| Dependency order | Are prerequisite inspections, changes, and validations sequenced before dependent work? | Inspection precedes changes, and validation follows the planned artifact update. | pass | None. |
+| Validation evidence | Can the validation gates prove the intended outcome objectively? | The validation gates identify objective checks for artifact structure and target verification. | pass | None. |
+| Estimation readiness | Can execution sizing derive proposal or diff inputs from the plan? | File Touch Plan and Estimation Inputs provide proposal-mode sizing inputs. | pass | None. |
+| Execution commitment | Is the plan ready to use as execution context without hidden blockers? | No contradiction, dependency conflict, or hidden blocker is visible in this sample. | pass | None. |
 
 # Plan Readiness Check
 

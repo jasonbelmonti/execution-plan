@@ -172,7 +172,7 @@ rules:
       header:
         - Review area
         - Viability question
-        - Evidence
+        - Reviewer notes
         - Decision
         - Required revision
     assert:
@@ -180,7 +180,7 @@ rules:
         columns:
           - Review area
           - Viability question
-          - Evidence
+          - Reviewer notes
           - Decision
           - Required revision
 

@@ -73,16 +73,18 @@ Apply these rules:
 
 ### Step 5: Review plan viability
 
-Review the drafted plan as a pre-execution gate before committing to implementation:
+Review the drafted plan with an LLM-as-judge pass before committing to implementation. Read the plan as if it were being handed to an executor and look for contradictions, conflicts, missing prerequisites, bad sequencing, unverifiable gates, hidden blockers, or assumptions that could prevent the route from working.
 
-- verify the route is executable with the loaded sources, current access, and known dependencies
-- verify dependencies are sequenced before dependent changes
-- verify validation gates can produce objective evidence for the success criteria
-- verify estimation inputs are concrete enough for proposal or diff-backed sizing
-- verify stop conditions catch missing sources, blockers, scope expansion, and failed validation
-- complete every required viability review area from the template with the exact viability question text and concrete evidence
-- keep the viability review in one table; do not remove, collapse, summarize, or split the required rows
-- mark each `Plan Viability Review` row `pass`, `revise`, or `blocked`
+Use the `Plan Viability Review` table to record that judgment:
+
+- evaluate the route against the loaded sources, current access, dependencies, and constraints
+- check whether prerequisite inspections, changes, and validations are sequenced before dependent work
+- check whether validation gates can objectively prove the intended outcome
+- check whether estimation inputs are concrete enough for proposal or diff-backed sizing
+- check whether stop conditions catch missing sources, blockers, scope expansion, and failed validation
+- complete every required viability review area from the template with the exact viability question text
+- record concise reviewer notes that explain the LLM judge result for each area
+- mark each row `pass`, `revise`, or `blocked`
 
 If any row is `revise`, revise the plan before validation. If any row is `blocked`, stop and return the artifact path, blocker, missing inputs, and next decision needed. Do not use a plan as execution context while the viability review is not fully `pass`.
 
@@ -94,7 +96,7 @@ Validate the artifact with the bundled validator:
 python3 <skill-dir>/scripts/validate_execution_plan.py --file ./.codex/execution-plans/<plan-id>/execution-plan.md
 ```
 
-The validator runs the bundled `@jasonbelmonti/markdown-engine` profile and then checks unresolved placeholders across the full raw artifact, including frontmatter. It also enforces one `Plan Viability Review` section, one complete viability table with the required review areas, exact viability questions, concrete non-placeholder evidence, non-empty required-revision cells, and passing decisions. Use the wrapper as the approval gate because markdown-engine v1 profile text assertions do not inspect frontmatter values or validate table-row semantics.
+The validator runs the bundled `@jasonbelmonti/markdown-engine` profile and then checks unresolved placeholders across the full raw artifact, including frontmatter. The validator is a structural gate; it does not decide whether the plan is viable. The LLM review pass in Step 5 owns that qualitative judgment.
 
 Then write a checksum:
 
