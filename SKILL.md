@@ -15,6 +15,28 @@ The artifact path is:
 ./.codex/execution-plans/<plan-id>/execution-plan.md
 ```
 
+## Durable Artifact Context Contract
+
+This skill writes durable planning state to the filesystem. A written file is
+not automatically in model context. After creating or updating an Execution
+Plan:
+
+1. Write the artifact to disk.
+2. Run validation and checksum steps when available.
+3. Re-read the artifact from disk before relying on its contents.
+4. Return the exact artifact path, validation status, checksum path when
+   present, and stop conditions.
+
+At kickoff, handoff, resume after context compression, or review preparation:
+
+1. Read the relevant Execution Plan from disk first.
+2. Verify checksum or validation state when present.
+3. Treat newer explicit user instructions as higher authority than the plan.
+4. If scope, constraints, validation gates, review boundaries, or stop
+   conditions changed, update the plan and revision log before continuing.
+5. Do not rely on chat memory, summaries, or the fact that the artifact was
+   recently written.
+
 ## Required Workflow
 
 Follow these steps in order.
