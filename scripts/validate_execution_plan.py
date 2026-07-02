@@ -5,10 +5,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+MARKDOWN_ENGINE_VERSION = "3.0.0"
 
 PLACEHOLDER_TOKENS = (
     "TODO",
@@ -57,11 +60,60 @@ def placeholder_diagnostics(text: str) -> list[dict[str, object]]:
     return diagnostics
 
 
+def default_codex_home() -> Path:
+    return Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")).expanduser()
+
+
+def resolve_markdown_engine_cli() -> Path | None:
+    explicit_cli = os.environ.get("MARKDOWN_ENGINE_CLI")
+
+    if explicit_cli:
+        cli = Path(explicit_cli).expanduser().resolve()
+        return cli if cli.is_file() else None
+
+    candidates = [
+        default_codex_home()
+        / "tools"
+        / "markdown-engine"
+        / MARKDOWN_ENGINE_VERSION
+        / "markdown-engine-cli.mjs",
+        Path.home()
+        / ".codex"
+        / "tools"
+        / "markdown-engine"
+        / MARKDOWN_ENGINE_VERSION
+        / "markdown-engine-cli.mjs",
+    ]
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate.resolve()
+
+    return None
+
+
+def resolve_node() -> str | None:
+    return shutil.which(os.environ.get("NODE_BINARY", "node"))
+
+
 def run_markdown_engine(file_path: Path, profile_path: Path) -> tuple[int, str, str]:
+    cli = resolve_markdown_engine_cli()
+    if cli is None:
+        return (
+            2,
+            "",
+            "Bundled markdown-engine CLI not found. Run "
+            "`scripts/install-markdown-engine-cli.sh` from the markdown-engine "
+            "repository, or set MARKDOWN_ENGINE_CLI to markdown-engine-cli.mjs.\n",
+        )
+
+    node = resolve_node()
+    if node is None:
+        return 2, "", "Node.js executable not found on PATH.\n"
+
     command = [
-        "npx",
-        "-y",
-        "@jasonbelmonti/markdown-engine@2.0.0",
+        node,
+        str(cli),
         "validate",
         "--file",
         str(file_path),
