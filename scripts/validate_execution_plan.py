@@ -60,8 +60,9 @@ def placeholder_diagnostics(text: str) -> list[dict[str, object]]:
     return diagnostics
 
 
-def default_codex_home() -> Path:
-    return Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")).expanduser()
+def default_markdown_engine_home() -> Path:
+    default_data_home = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
+    return Path(os.environ.get("MARKDOWN_ENGINE_HOME", default_data_home / "markdown-engine")).expanduser()
 
 
 def resolve_markdown_engine_cli() -> Path | None:
@@ -72,13 +73,7 @@ def resolve_markdown_engine_cli() -> Path | None:
         return cli if cli.is_file() else None
 
     candidates = [
-        default_codex_home()
-        / "tools"
-        / "markdown-engine"
-        / MARKDOWN_ENGINE_VERSION
-        / "markdown-engine-cli.mjs",
-        Path.home()
-        / ".codex"
+        default_markdown_engine_home()
         / "tools"
         / "markdown-engine"
         / MARKDOWN_ENGINE_VERSION
@@ -104,7 +99,8 @@ def run_markdown_engine(file_path: Path, profile_path: Path) -> tuple[int, str, 
             "",
             "Bundled markdown-engine CLI not found. Run "
             "`scripts/install-markdown-engine-cli.sh` from the markdown-engine "
-            "repository, or set MARKDOWN_ENGINE_CLI to markdown-engine-cli.mjs.\n",
+            "repository, set MARKDOWN_ENGINE_HOME to the install root, or set "
+            "MARKDOWN_ENGINE_CLI to markdown-engine-cli.mjs.\n",
         )
 
     node = resolve_node()
