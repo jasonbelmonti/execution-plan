@@ -1,23 +1,57 @@
 syntaxVersion: markdown-engine.validation@v2
 documentVersion: 1.0.0
 rules:
-  - id: frontmatter.required
+  - id: frontmatter.shape
     select:
       target: document
     assert:
-      frontmatterRequired:
+      frontmatterShape:
+        presence: required
         fields:
-          - title
-          - plan_id
-          - artifact_version
-          - status
-          - created_at
-          - updated_at
-          - target_repo
-          - target_branch
-          - source_packet
-          - estimation_mode
-          - validation_profile
+          - field: title
+            required: true
+            valueType: string
+            nonEmpty: true
+          - field: plan_id
+            required: true
+            valueType: string
+            nonEmpty: true
+          - field: artifact_version
+            required: true
+            valueType: string
+            nonEmpty: true
+          - field: status
+            required: true
+            valueType: string
+            nonEmpty: true
+          - field: created_at
+            required: true
+            valueType: string
+            nonEmpty: true
+          - field: updated_at
+            required: true
+            valueType: string
+            nonEmpty: true
+          - field: target_repo
+            required: true
+            valueType: string
+            nonEmpty: true
+          - field: target_branch
+            required: true
+            valueType: string
+            nonEmpty: true
+          - field: source_packet
+            required: true
+            valueType: string
+            nonEmpty: true
+          - field: estimation_mode
+            required: true
+            valueType: string
+            nonEmpty: true
+          - field: validation_profile
+            required: true
+            valueType: string
+            nonEmpty: true
 
   - id: sections.required
     select:

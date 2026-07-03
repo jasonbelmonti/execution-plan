@@ -120,7 +120,7 @@ Validate the artifact with the installed bundled CLI and declarative profile. Do
 "${MARKDOWN_ENGINE_BIN_DIR:-$HOME/.local/bin}/markdown-engine" validate --file ./.codex/execution-plans/<plan-id>/execution-plan.md --profile <skill-dir>/profiles/execution-plan.yaml --format json
 ```
 
-The validation profile checks required structure, unresolved placeholder text, and conditional Review Handoff packet sizing. Use the JSON output as validation evidence, including `engineVersion`, `profileHash`, `inputHash`, evaluated rule count, skipped rule count, and failed diagnostics when present. The structural gate does not decide whether the plan is viable. The LLM review pass in Step 5 owns that qualitative judgment.
+The validation profile checks required structure, typed non-empty frontmatter, unresolved placeholder text, and conditional Review Handoff packet sizing. It uses the markdown-engine 3.1.0 `frontmatterShape` feature; if validation reports unsupported `frontmatterShape`, update the bundled markdown-engine CLI rather than adding a local fallback. Use the JSON output as validation evidence, including `engineVersion`, `profileHash`, `inputHash`, evaluated rule count, skipped rule count, and failed diagnostics when present. The structural gate does not decide whether the plan is viable. The LLM review pass in Step 5 owns that qualitative judgment.
 
 Then write a checksum:
 
@@ -170,7 +170,7 @@ Before handing off, verify that the artifact answers:
 - Does `reviewContextSize` match the selected Review Handoff packet, with exactly one `SELECTED` row?
 - What validation proves success?
 - Does the `Plan Readiness Check` show that placeholders were removed, sources are complete, steps are specific, estimation inputs are usable, and the review context packet is right-sized?
-- Does markdown-engine profile validation pass, including the full-document placeholder guard and conditional Review Handoff sizing rules?
+- Does markdown-engine profile validation pass, including frontmatter shape, the full-document placeholder guard, and conditional Review Handoff sizing rules?
 - What is out of scope or deferred?
 - When should an agent stop and ask for direction?
 
