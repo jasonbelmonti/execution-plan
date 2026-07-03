@@ -232,6 +232,7 @@ rules:
     assert:
       text:
         excludes:
+          - "TODO"
           - "replace-with-command-or-manual-check"
           - "/absolute/path"
           - "/absolute/path/or/repo/relative/path"
