@@ -78,7 +78,7 @@ Avoid generic plan steps such as "implement the feature" unless the row also nam
 
 ### Step 4: Write or revise the Execution Plan
 
-Use [references/execution-plan-template.md](references/execution-plan-template.md) as the required artifact structure.
+Use [profiles/execution-plan.yaml](profiles/execution-plan.yaml) as the required artifact structure and deterministic validation contract.
 
 Apply these rules:
 
@@ -104,7 +104,7 @@ Use the `Plan Viability Review` table to record that judgment:
 - check whether validation gates can objectively prove the intended outcome
 - check whether estimation inputs are concrete enough for proposal or diff-backed sizing
 - check whether stop conditions catch missing sources, blockers, scope expansion, and failed validation
-- complete every required viability review area from the template with the exact viability question text
+- complete every required viability review area from the validation profile with the exact viability question text
 - record concise reviewer notes that explain the LLM judge result for each area
 - mark each row `pass`, `revise`, or `blocked`
 
@@ -112,13 +112,13 @@ If any row is `revise`, revise the plan before validation. If any row is `blocke
 
 ### Step 6: Validate and checksum the artifact
 
-Validate the artifact with the bundled validator:
+Validate the artifact with the installed bundled CLI and declarative profile:
 
 ```bash
-python3 <skill-dir>/scripts/validate_execution_plan.py --file ./.codex/execution-plans/<plan-id>/execution-plan.md
+"${MARKDOWN_ENGINE_BIN_DIR:-$HOME/.local/bin}/markdown-engine" validate --file ./.codex/execution-plans/<plan-id>/execution-plan.md --profile <skill-dir>/profiles/execution-plan.yaml --format json
 ```
 
-The validator runs the bundled `@jasonbelmonti/markdown-engine` profile and then checks unresolved placeholders across the full raw artifact, including frontmatter. The validator is a structural gate; it does not decide whether the plan is viable. The LLM review pass in Step 5 owns that qualitative judgment.
+The validation profile checks required structure and unresolved placeholder text across the document. The structural gate does not decide whether the plan is viable. The LLM review pass in Step 5 owns that qualitative judgment.
 
 Then write a checksum:
 
@@ -151,7 +151,7 @@ Before handing off, verify that the artifact answers:
 - Did the viability review pass before execution commitment?
 - What validation proves success?
 - Does the `Plan Readiness Check` show that placeholders were removed, sources are complete, steps are specific, and estimation inputs are usable?
-- Does the bundled validator pass, including the full-document placeholder guard?
+- Does the bundled profile validation pass, including the full-document placeholder guard?
 - What is out of scope or deferred?
 - When should an agent stop and ask for direction?
 
@@ -175,6 +175,4 @@ Always:
 
 ## Reference Files
 
-- Use [references/execution-plan-template.md](references/execution-plan-template.md) as the required artifact structure.
-- Use [profiles/execution-plan.yaml](profiles/execution-plan.yaml) as the markdown-engine validation profile.
-- Use [scripts/validate_execution_plan.py](scripts/validate_execution_plan.py) as the required validation wrapper.
+- Use [profiles/execution-plan.yaml](profiles/execution-plan.yaml) as the required artifact structure and markdown-engine validation profile.
