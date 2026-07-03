@@ -1,4 +1,4 @@
-syntaxVersion: markdown-engine.validation@v1
+syntaxVersion: markdown-engine.validation@v2
 documentVersion: 1.0.0
 rules:
   - id: frontmatter.required
@@ -114,6 +114,86 @@ rules:
           - Value
           - Notes
 
+  - id: estimation.inputs.review-context-size.row
+    select:
+      target: tableRow
+      section: Estimation Inputs
+      tableHeader:
+        - Field
+        - Value
+        - Notes
+      where:
+        column: Field
+        equals: reviewContextSize
+    assert:
+      exists: true
+
+  - id: estimation.inputs.review-context-size.allowed
+    anyOf:
+      - label: focused
+        select:
+          target: tableCell
+          section: Estimation Inputs
+          tableHeader:
+            - Field
+            - Value
+            - Notes
+          column: Value
+          rowWhere:
+            column: Field
+            equals: reviewContextSize
+        assert:
+          text:
+            contains: focused
+            excludes:
+              - standard
+              - expanded
+          textLength:
+            min: 7
+            max: 7
+      - label: standard
+        select:
+          target: tableCell
+          section: Estimation Inputs
+          tableHeader:
+            - Field
+            - Value
+            - Notes
+          column: Value
+          rowWhere:
+            column: Field
+            equals: reviewContextSize
+        assert:
+          text:
+            contains: standard
+            excludes:
+              - focused
+              - expanded
+          textLength:
+            min: 8
+            max: 8
+      - label: expanded
+        select:
+          target: tableCell
+          section: Estimation Inputs
+          tableHeader:
+            - Field
+            - Value
+            - Notes
+          column: Value
+          rowWhere:
+            column: Field
+            equals: reviewContextSize
+        assert:
+          text:
+            contains: expanded
+            excludes:
+              - focused
+              - standard
+          textLength:
+            min: 8
+            max: 8
+
   - id: validation.gates.table
     select:
       target: table
@@ -164,6 +244,498 @@ rules:
           - Requirement
           - Evidence
           - Status
+
+  - id: review.handoff.table
+    select:
+      target: table
+      section: Review Handoff
+      header:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+    assert:
+      tableColumnsRequired:
+        columns:
+          - Review context packet
+          - Task fit
+          - Status
+          - Packet contents
+
+  - id: review.handoff.exact-column-count
+    select:
+      target: table
+      section: Review Handoff
+      header:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+    assert:
+      textOccurrenceCount:
+        text: "	"
+        count: 12
+
+  - id: review.handoff.focused.row
+    select:
+      target: tableRow
+      section: Review Handoff
+      tableHeader:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+      where:
+        column: Review context packet
+        equals: Focused
+    assert:
+      exists: true
+
+  - id: review.handoff.standard.row
+    select:
+      target: tableRow
+      section: Review Handoff
+      tableHeader:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+      where:
+        column: Review context packet
+        equals: Standard
+    assert:
+      exists: true
+
+  - id: review.handoff.expanded.row
+    select:
+      target: tableRow
+      section: Review Handoff
+      tableHeader:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+      where:
+        column: Review context packet
+        equals: Expanded
+    assert:
+      exists: true
+
+  - id: review.handoff.exact-row-count
+    select:
+      target: table
+      section: Review Handoff
+      header:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+    assert:
+      textOccurrenceCount:
+        text: "\n"
+        count: 3
+
+  - id: review.handoff.focused-selected-when-focused
+    when:
+      select:
+        target: tableCell
+        section: Estimation Inputs
+        tableHeader:
+          - Field
+          - Value
+          - Notes
+        column: Value
+        rowWhere:
+          column: Field
+          equals: reviewContextSize
+      assert:
+        text:
+          contains: focused
+        textLength:
+          min: 7
+          max: 7
+    select:
+      target: tableCell
+      section: Review Handoff
+      tableHeader:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+      column: Status
+      rowWhere:
+        column: Review context packet
+        equals: Focused
+    assert:
+      text:
+        contains: SELECTED
+      textLength:
+        min: 8
+        max: 8
+
+  - id: review.handoff.omitted-when-focused
+    when:
+      select:
+        target: tableCell
+        section: Estimation Inputs
+        tableHeader:
+          - Field
+          - Value
+          - Notes
+        column: Value
+        rowWhere:
+          column: Field
+          equals: reviewContextSize
+      assert:
+        text:
+          contains: focused
+        textLength:
+          min: 7
+          max: 7
+    allOf:
+      - label: standard-omitted
+        select:
+          target: tableCell
+          section: Review Handoff
+          tableHeader:
+            - Review context packet
+            - Task fit
+            - Status
+            - Packet contents
+          column: Status
+          rowWhere:
+            column: Review context packet
+            equals: Standard
+        assert:
+          text:
+            contains: OMITTED
+          textLength:
+            min: 7
+            max: 7
+      - label: expanded-omitted
+        select:
+          target: tableCell
+          section: Review Handoff
+          tableHeader:
+            - Review context packet
+            - Task fit
+            - Status
+            - Packet contents
+          column: Status
+          rowWhere:
+            column: Review context packet
+            equals: Expanded
+        assert:
+          text:
+            contains: OMITTED
+          textLength:
+            min: 7
+            max: 7
+
+  - id: review.handoff.standard-selected-when-standard
+    when:
+      select:
+        target: tableCell
+        section: Estimation Inputs
+        tableHeader:
+          - Field
+          - Value
+          - Notes
+        column: Value
+        rowWhere:
+          column: Field
+          equals: reviewContextSize
+      assert:
+        text:
+          contains: standard
+        textLength:
+          min: 8
+          max: 8
+    select:
+      target: tableCell
+      section: Review Handoff
+      tableHeader:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+      column: Status
+      rowWhere:
+        column: Review context packet
+        equals: Standard
+    assert:
+      text:
+        contains: SELECTED
+      textLength:
+        min: 8
+        max: 8
+
+  - id: review.handoff.omitted-when-standard
+    when:
+      select:
+        target: tableCell
+        section: Estimation Inputs
+        tableHeader:
+          - Field
+          - Value
+          - Notes
+        column: Value
+        rowWhere:
+          column: Field
+          equals: reviewContextSize
+      assert:
+        text:
+          contains: standard
+        textLength:
+          min: 8
+          max: 8
+    allOf:
+      - label: focused-omitted
+        select:
+          target: tableCell
+          section: Review Handoff
+          tableHeader:
+            - Review context packet
+            - Task fit
+            - Status
+            - Packet contents
+          column: Status
+          rowWhere:
+            column: Review context packet
+            equals: Focused
+        assert:
+          text:
+            contains: OMITTED
+          textLength:
+            min: 7
+            max: 7
+      - label: expanded-omitted
+        select:
+          target: tableCell
+          section: Review Handoff
+          tableHeader:
+            - Review context packet
+            - Task fit
+            - Status
+            - Packet contents
+          column: Status
+          rowWhere:
+            column: Review context packet
+            equals: Expanded
+        assert:
+          text:
+            contains: OMITTED
+          textLength:
+            min: 7
+            max: 7
+
+  - id: review.handoff.expanded-selected-when-expanded
+    when:
+      select:
+        target: tableCell
+        section: Estimation Inputs
+        tableHeader:
+          - Field
+          - Value
+          - Notes
+        column: Value
+        rowWhere:
+          column: Field
+          equals: reviewContextSize
+      assert:
+        text:
+          contains: expanded
+        textLength:
+          min: 8
+          max: 8
+    select:
+      target: tableCell
+      section: Review Handoff
+      tableHeader:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+      column: Status
+      rowWhere:
+        column: Review context packet
+        equals: Expanded
+    assert:
+      text:
+        contains: SELECTED
+      textLength:
+        min: 8
+        max: 8
+
+  - id: review.handoff.omitted-when-expanded
+    when:
+      select:
+        target: tableCell
+        section: Estimation Inputs
+        tableHeader:
+          - Field
+          - Value
+          - Notes
+        column: Value
+        rowWhere:
+          column: Field
+          equals: reviewContextSize
+      assert:
+        text:
+          contains: expanded
+        textLength:
+          min: 8
+          max: 8
+    allOf:
+      - label: focused-omitted
+        select:
+          target: tableCell
+          section: Review Handoff
+          tableHeader:
+            - Review context packet
+            - Task fit
+            - Status
+            - Packet contents
+          column: Status
+          rowWhere:
+            column: Review context packet
+            equals: Focused
+        assert:
+          text:
+            contains: OMITTED
+          textLength:
+            min: 7
+            max: 7
+      - label: standard-omitted
+        select:
+          target: tableCell
+          section: Review Handoff
+          tableHeader:
+            - Review context packet
+            - Task fit
+            - Status
+            - Packet contents
+          column: Status
+          rowWhere:
+            column: Review context packet
+            equals: Standard
+        assert:
+          text:
+            contains: OMITTED
+          textLength:
+            min: 7
+            max: 7
+
+  - id: review.handoff.focused-size
+    when:
+      select:
+        target: tableCell
+        section: Review Handoff
+        tableHeader:
+          - Review context packet
+          - Task fit
+          - Status
+          - Packet contents
+        column: Status
+        rowWhere:
+          column: Review context packet
+          equals: Focused
+      assert:
+        text:
+          contains: SELECTED
+        textLength:
+          min: 8
+          max: 8
+    select:
+      target: tableCell
+      section: Review Handoff
+      tableHeader:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+      column: Packet contents
+      rowWhere:
+        column: Review context packet
+        equals: Focused
+    assert:
+      textLength:
+        min: 160
+        max: 900
+
+  - id: review.handoff.standard-size
+    when:
+      select:
+        target: tableCell
+        section: Review Handoff
+        tableHeader:
+          - Review context packet
+          - Task fit
+          - Status
+          - Packet contents
+        column: Status
+        rowWhere:
+          column: Review context packet
+          equals: Standard
+      assert:
+        text:
+          contains: SELECTED
+        textLength:
+          min: 8
+          max: 8
+    select:
+      target: tableCell
+      section: Review Handoff
+      tableHeader:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+      column: Packet contents
+      rowWhere:
+        column: Review context packet
+        equals: Standard
+    assert:
+      textLength:
+        min: 250
+        max: 1400
+
+  - id: review.handoff.expanded-size
+    when:
+      select:
+        target: tableCell
+        section: Review Handoff
+        tableHeader:
+          - Review context packet
+          - Task fit
+          - Status
+          - Packet contents
+        column: Status
+        rowWhere:
+          column: Review context packet
+          equals: Expanded
+      assert:
+        text:
+          contains: SELECTED
+        textLength:
+          min: 8
+          max: 8
+    select:
+      target: tableCell
+      section: Review Handoff
+      tableHeader:
+        - Review context packet
+        - Task fit
+        - Status
+        - Packet contents
+      column: Packet contents
+      rowWhere:
+        column: Review context packet
+        equals: Expanded
+    assert:
+      textLength:
+        min: 400
+        max: 2200
 
   - id: plan.viability.review.table
     select:
