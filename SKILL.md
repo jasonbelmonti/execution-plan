@@ -12,7 +12,7 @@ Create a durable Execution Plan on disk that turns source context into a concret
 The artifact path is:
 
 ```text
-./.codex/execution-plans/<plan-id>/execution-plan.md
+./.codefactory/execution-plans/<plan-id>/execution-plan.md
 ```
 
 ## Durable Artifact Context Contract
@@ -45,8 +45,8 @@ Follow these steps in order.
 
 Choose a stable `plan_id` from the work item, branch, ticket, or short slug. Create or update:
 
-- `./.codex/execution-plans/<plan-id>/execution-plan.md`
-- `./.codex/execution-plans/<plan-id>/execution-plan.sha256`
+- `./.codefactory/execution-plans/<plan-id>/execution-plan.md`
+- `./.codefactory/execution-plans/<plan-id>/execution-plan.sha256`
 
 Use the same `plan_id` across revisions unless the objective changes materially.
 
@@ -117,7 +117,7 @@ If any row is `revise`, revise the plan before validation. If any row is `blocke
 Validate the artifact with the installed bundled CLI and declarative profile. Do not run or recreate a skill-local validation wrapper or custom placeholder script; profile validation is delegated to markdown-engine.
 
 ```bash
-"${MARKDOWN_ENGINE_BIN_DIR:-$HOME/.local/bin}/markdown-engine" validate --file ./.codex/execution-plans/<plan-id>/execution-plan.md --profile <skill-dir>/profiles/execution-plan.yaml --format json
+"${MARKDOWN_ENGINE_BIN_DIR:-$HOME/.local/bin}/markdown-engine" validate --file ./.codefactory/execution-plans/<plan-id>/execution-plan.md --profile <skill-dir>/profiles/execution-plan.yaml --format json
 ```
 
 The validation profile checks required structure, typed non-empty frontmatter, unresolved placeholder text, and conditional Review Handoff packet sizing. It uses the markdown-engine 3.1.0 `frontmatterShape` feature; if validation reports unsupported `frontmatterShape`, update the bundled markdown-engine CLI rather than adding a local fallback. Use the JSON output as validation evidence, including `engineVersion`, `profileHash`, `inputHash`, evaluated rule count, skipped rule count, and failed diagnostics when present. The structural gate does not decide whether the plan is viable. The LLM review pass in Step 5 owns that qualitative judgment.
@@ -125,7 +125,7 @@ The validation profile checks required structure, typed non-empty frontmatter, u
 Then write a checksum:
 
 ```bash
-shasum -a 256 ./.codex/execution-plans/<plan-id>/execution-plan.md > ./.codex/execution-plans/<plan-id>/execution-plan.sha256
+shasum -a 256 ./.codefactory/execution-plans/<plan-id>/execution-plan.md > ./.codefactory/execution-plans/<plan-id>/execution-plan.sha256
 ```
 
 If validation fails, revise the artifact before using it as execution context.
