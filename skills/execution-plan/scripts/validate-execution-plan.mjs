@@ -188,9 +188,11 @@ function loadTables(document, diagnostics) {
     if (definition.maxRows !== undefined && table.rows.length > definition.maxRows) diagnostic(diagnostics, "plan.table-row-limit", `${definition.section} allows at most ${definition.maxRows} rows; found ${table.rows.length}`, { table: key });
     tables.set(key, table);
   }
-  for (const section of ["Plan Control", "Plan Readiness"]) {
+  const expectedCounts = new Map();
+  for (const { section } of Object.values(TABLES)) expectedCounts.set(section, (expectedCounts.get(section) ?? 0) + 1);
+  for (const [section, expected] of expectedCounts) {
     const count = candidates.filter((candidate) => candidate.section === section).length;
-    if (count !== 1) diagnostic(diagnostics, "plan.authority-table-count", `${section} requires exactly one table of any shape; found ${count}`, { section });
+    if (count !== expected) diagnostic(diagnostics, "plan.section-table-count", `${section} requires exactly ${expected} table${expected === 1 ? "" : "s"} of any shape; found ${count}`, { section });
   }
   return tables;
 }

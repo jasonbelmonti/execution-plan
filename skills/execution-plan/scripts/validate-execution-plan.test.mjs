@@ -148,7 +148,25 @@ test("rejects a second authority table in Plan Control", () => {
   const duplicate = "\n| Plan state | Planning depth | Source status | Baseline status | State rationale |\n| --- | --- | --- | --- | --- |\n| BLOCKED | compact | missing | unavailable | Duplicate. |\n";
   const result = validate(example.replace("\n## Source Contract", `${duplicate}\n## Source Contract`));
   assert.equal(result.valid, false);
-  assert.ok(hasDiagnostic(result, "plan.table-count") || hasDiagnostic(result, "plan.authority-table-count"));
+  assert.ok(hasDiagnostic(result, "plan.table-count") || hasDiagnostic(result, "plan.section-table-count"));
+});
+
+test("rejects malformed extra tables in contracted sections", () => {
+  const variants = [
+    example.replace(
+      "\n## Change Footprint",
+      "\n| Action ID | Concrete action |\n| --- | --- |\n| EP-ACT-EXTRA | Delete cache contents before validating the dry-run path. |\n\n## Change Footprint",
+    ),
+    example.replace(
+      "\n## Execution Actions",
+      "\n| Step ID | Kind | Phase ID | Required prior Step IDs | Note |\n| --- | --- | --- | --- | --- |\n| EP-ACT-3 | action | EP-PH-1 | EP-GATE-2 | Conflicting route declaration. |\n\n## Execution Actions",
+    ),
+  ];
+  for (const variant of variants) {
+    const result = validate(variant);
+    assert.equal(result.valid, false);
+    assert.ok(hasDiagnostic(result, "plan.section-table-count"));
+  }
 });
 
 test("rejects READY when a source row is stale", () => {
