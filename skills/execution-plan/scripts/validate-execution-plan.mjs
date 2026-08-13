@@ -9,63 +9,54 @@ const TABLES = {
   planControl: {
     section: "Plan Control",
     headers: ["Plan state", "Planning depth", "Source status", "Baseline status", "State rationale"],
-    maxRows: 1,
   },
   sources: {
     section: "Source Contract",
     headers: ["Source ID", "Source reference", "Version / fingerprint", "Authority", "Status", "Planning implication"],
     idColumn: "Source ID",
     prefixes: ["EP-SRC"],
-    maxRows: 30,
   },
   outcomes: {
     section: "Outcome Anchors",
     headers: ["Outcome ID", "Source IDs", "Source location", "Required observable", "Proof obligation"],
     idColumn: "Outcome ID",
     prefixes: ["EP-OUT"],
-    maxRows: 20,
   },
   findings: {
     section: "Baseline Findings",
     headers: ["Finding ID", "Repository evidence", "Current behavior / constraint", "Planning implication", "Confidence"],
     idColumn: "Finding ID",
     prefixes: ["EP-FIND"],
-    maxRows: 30,
   },
   preconditions: {
     section: "Preconditions",
     headers: ["Precondition ID", "Required state / input", "Verification", "Unmet trigger ID"],
     idColumn: "Precondition ID",
     prefixes: ["EP-PRE"],
-    maxRows: 30,
   },
   decisions: {
     section: "Implementation Decisions",
     headers: ["Decision ID", "Kind", "Decision or assumption", "Finding IDs", "Evidence / rationale", "Affected action IDs", "Replan trigger ID"],
     idColumn: "Decision ID",
     prefixes: ["EP-DEC"],
-    maxRows: 30,
   },
   phases: {
     section: "Execution Phases",
     headers: ["Phase ID", "Phase objective", "Entry precondition IDs", "Safe intermediate state"],
     idColumn: "Phase ID",
     prefixes: ["EP-PH"],
-    maxRows: 12,
   },
   route: {
     section: "Execution Route",
     headers: ["Step ID", "Kind", "Phase ID", "Required prior Step IDs"],
     idColumn: "Step ID",
     prefixes: ["EP-ACT", "EP-GATE"],
-    maxRows: 100,
   },
   actions: {
     section: "Execution Actions",
     headers: ["Action ID", "Precondition IDs", "Outcome IDs", "Targets", "Concrete action", "Observable postcondition", "Evidence to capture", "Failure response ID"],
     idColumn: "Action ID",
     prefixes: ["EP-ACT"],
-    maxRows: 60,
   },
   footprint: {
     section: "Change Footprint",
@@ -76,26 +67,22 @@ const TABLES = {
     headers: ["Gate ID", "Outcome IDs", "Command or check", "Expected observation", "Evidence capture", "Evidence artifact", "Evidence verification", "Failure response ID"],
     idColumn: "Gate ID",
     prefixes: ["EP-GATE"],
-    maxRows: 40,
   },
   responses: {
     section: "Failure and Replan Controls",
     headers: ["Response ID", "Trigger", "Containment", "Exact recovery / rollback procedure", "Single restored safe state", "Verification", "Escalation trigger ID"],
     idColumn: "Response ID",
     prefixes: ["EP-RESP"],
-    maxRows: 30,
   },
   triggers: {
     section: "Failure and Replan Controls",
     headers: ["Trigger ID", "Observable trigger", "Stopped Step IDs", "Evidence to preserve", "Required decision / input", "Exact resume condition"],
     idColumn: "Trigger ID",
     prefixes: ["EP-TRIG"],
-    maxRows: 30,
   },
   readiness: {
     section: "Plan Readiness",
     headers: ["Decision", "Reviewed at", "Evidence / rationale", "Required revision or blocker"],
-    maxRows: 1,
   },
   revisions: {
     section: "Revision Log",
@@ -181,18 +168,9 @@ function loadTables(document, diagnostics) {
   }
   const tables = new Map();
   for (const [key, definition] of Object.entries(TABLES)) {
-    const matches = candidates.filter(({ section, headers }) => section === definition.section && sameHeaders(headers, definition.headers));
-    if (matches.length !== 1) diagnostic(diagnostics, "plan.table-count", `${definition.section} requires exactly one table with the contracted headers; found ${matches.length}`, { table: key });
-    const table = matches[0] ?? { section: definition.section, headers: definition.headers, rows: [] };
-    if (table.rows.length === 0) diagnostic(diagnostics, "plan.table-empty", `${definition.section} requires at least one data row`, { table: key });
-    if (definition.maxRows !== undefined && table.rows.length > definition.maxRows) diagnostic(diagnostics, "plan.table-row-limit", `${definition.section} allows at most ${definition.maxRows} rows; found ${table.rows.length}`, { table: key });
-    tables.set(key, table);
-  }
-  const expectedCounts = new Map();
-  for (const { section } of Object.values(TABLES)) expectedCounts.set(section, (expectedCounts.get(section) ?? 0) + 1);
-  for (const [section, expected] of expectedCounts) {
-    const count = candidates.filter((candidate) => candidate.section === section).length;
-    if (count !== expected) diagnostic(diagnostics, "plan.section-table-count", `${section} requires exactly ${expected} table${expected === 1 ? "" : "s"} of any shape; found ${count}`, { section });
+    const table = candidates.find(({ section, headers }) => section === definition.section && sameHeaders(headers, definition.headers));
+    if (!table) diagnostic(diagnostics, "plan.table-schema", `${definition.section} requires a table with the exact contracted headers`, { table: key });
+    tables.set(key, table ?? { section: definition.section, headers: definition.headers, rows: [] });
   }
   return tables;
 }

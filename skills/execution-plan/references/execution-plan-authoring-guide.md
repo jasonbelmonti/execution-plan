@@ -271,7 +271,7 @@ Use only ASCII letters and digits after the final prefix hyphen; for example, `E
 
 The structural ceilings are 30 sources, 20 outcomes, 30 findings, 30 preconditions, 30 decisions, 12 phases, 100 route steps, 60 actions, 40 gates, 30 responses, and 30 replan triggers. These are coherence guards, not targets. If a trustworthy route exceeds one, split it at independently authoritative outcomes or safe execution boundaries; never omit rows merely to fit the ceiling.
 
-The structural profile checks metadata, required section order, and unresolved placeholders. The execution-plan validator consumes Markdown Engine's normalized document and checks exact core tables, non-empty route content, explicit reference columns and enums, source/readiness consistency, route/detail correspondence, prior-step references, ordered phase membership, and gate-terminated phase exits. Plan-like text in explanatory prose is not a machine relationship. The semantic route audit must still reject:
+The structural profile checks metadata, required section order, unresolved placeholders, total table cardinality, and the documented per-schema row bounds through Markdown Engine 3.3.0 `selectionCount`. The execution-plan validator consumes Markdown Engine's normalized document and checks exact core table schemas, nonempty cells, explicit reference columns and enums, source/readiness consistency, route/detail correspondence, prior-step references, ordered phase membership, and gate-terminated phase exits. Plan-like text in explanatory prose is not a machine relationship. The semantic route audit must still reject:
 
 - duplicate, dangling, self, or forward prerequisite references
 - duplicate or missing action/gate route entries

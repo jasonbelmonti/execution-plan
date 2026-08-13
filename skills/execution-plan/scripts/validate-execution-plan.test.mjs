@@ -42,8 +42,21 @@ function runCli(markdown) {
   });
 }
 
+function validateProfile(markdown) {
+  const result = spawnSync(markdownEnginePath, ["validate", "--file", writeFixture(markdown), "--profile", profilePath, "--format", "json"], {
+    encoding: "utf8",
+    maxBuffer: 16 * 1024 * 1024,
+  });
+  assert.ok([0, 1].includes(result.status), result.stderr);
+  return JSON.parse(result.stdout);
+}
+
 function hasDiagnostic(result, code, properties = {}) {
   return result.diagnostics.some((diagnostic) => diagnostic.code === code && Object.entries(properties).every(([key, value]) => diagnostic[key] === value));
+}
+
+function hasFailedProfileRule(result, ruleId) {
+  return result.ruleResults.some((rule) => rule.ruleId === ruleId && rule.status === "failed");
 }
 
 function twoPhasePlan() {
@@ -60,6 +73,15 @@ test("accepts the worked example and preserves its explicit route", () => {
   const result = validate(example);
   assert.equal(result.valid, true);
   assert.deepEqual(result.evidence.routeOrder, ["EP-ACT-1", "EP-GATE-1", "EP-ACT-2", "EP-GATE-2"]);
+});
+
+test("structural profile accepts the worked example with every 3.3.0 rule evaluated", () => {
+  const result = validateProfile(example);
+  assert.equal(result.valid, true);
+  assert.equal(result.evidence.engineVersion, "3.3.0");
+  assert.equal(result.profile.ruleCount, 19);
+  assert.equal(result.profile.evaluatedRuleCount, 19);
+  assert.equal(result.profile.skippedRuleCount, 0);
 });
 
 test("rejects a self prerequisite", () => {
@@ -144,14 +166,14 @@ test("required validator pair rejects malformed stopped-step references", () => 
   }
 });
 
-test("rejects a second authority table in Plan Control", () => {
+test("structural profile rejects a second authority table in Plan Control", () => {
   const duplicate = "\n| Plan state | Planning depth | Source status | Baseline status | State rationale |\n| --- | --- | --- | --- | --- |\n| BLOCKED | compact | missing | unavailable | Duplicate. |\n";
-  const result = validate(example.replace("\n## Source Contract", `${duplicate}\n## Source Contract`));
+  const result = validateProfile(example.replace("\n## Source Contract", `${duplicate}\n## Source Contract`));
   assert.equal(result.valid, false);
-  assert.ok(hasDiagnostic(result, "plan.table-count") || hasDiagnostic(result, "plan.section-table-count"));
+  assert.ok(hasFailedProfileRule(result, "tables.total.exact"));
 });
 
-test("rejects malformed extra tables in contracted sections", () => {
+test("structural profile rejects malformed extra tables in contracted sections", () => {
   const variants = [
     example.replace(
       "\n## Change Footprint",
@@ -163,10 +185,49 @@ test("rejects malformed extra tables in contracted sections", () => {
     ),
   ];
   for (const variant of variants) {
-    const result = validate(variant);
+    const result = validateProfile(variant);
     assert.equal(result.valid, false);
-    assert.ok(hasDiagnostic(result, "plan.section-table-count"));
+    assert.ok(hasFailedProfileRule(result, "tables.total.exact"));
   }
+});
+
+test("structural profile rejects an empty contracted table", () => {
+  const invalid = example.split("\n").filter((line) => !line.startsWith("| EP-SRC-")).join("\n");
+  const result = validateProfile(invalid);
+  assert.equal(result.valid, false);
+  assert.ok(hasFailedProfileRule(result, "rows.source-contract.count"));
+});
+
+test("structural profile enforces single-row lifecycle authorities", () => {
+  const variants = [
+    [example.replace("| READY | standard | current | inspected | The outcome", "| DRAFT | compact | current | inspected | Duplicate authority. |\n| READY | standard | current | inspected | The outcome"), "rows.plan-control.count"],
+    [example.replace("| PASS | 2026-08-11T21:25:58-05:00 by Codex |", "| REVISE | 2026-08-11T21:25:58-05:00 by Codex | Duplicate authority. | Repair. |\n| PASS | 2026-08-11T21:25:58-05:00 by Codex |"), "rows.plan-readiness.count"],
+  ];
+  for (const [invalid, ruleId] of variants) {
+    const result = validateProfile(invalid);
+    assert.equal(result.valid, false);
+    assert.ok(hasFailedProfileRule(result, ruleId));
+  }
+});
+
+test("structural profile rejects a contracted row-count overflow", () => {
+  const sourceRow = example.split("\n").find((line) => line.startsWith("| EP-SRC-1 |"));
+  const extraRows = Array.from({ length: 29 }, (_, index) => sourceRow.replace("EP-SRC-1", `EP-SRC-X${index}`)).join("\n");
+  const invalid = example.replace("\n\n## Outcome Anchors", `\n${extraRows}\n\n## Outcome Anchors`);
+  const result = validateProfile(invalid);
+  assert.equal(result.valid, false);
+  assert.ok(hasFailedProfileRule(result, "rows.source-contract.count"));
+});
+
+test("required validator pair retains exact table-header enforcement", () => {
+  const invalid = example
+    .replace("| Step ID | Kind | Phase ID | Required prior Step IDs |", "| Step ID | Kind | Phase ID | Required prior Step IDs | Extra |")
+    .replace("| --- | --- | --- | --- |\n| EP-ACT-1 | action | EP-PH-1 | None |", "| --- | --- | --- | --- | --- |\n| EP-ACT-1 | action | EP-PH-1 | None | Extra |");
+  const structural = validateProfile(invalid);
+  const relational = validate(invalid);
+  assert.equal(structural.valid, true);
+  assert.equal(relational.valid, false);
+  assert.ok(hasDiagnostic(relational, "plan.table-schema", { table: "route" }));
 });
 
 test("rejects READY when a source row is stale", () => {
