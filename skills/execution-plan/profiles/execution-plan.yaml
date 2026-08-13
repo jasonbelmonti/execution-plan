@@ -1,5 +1,6 @@
-# Markdown-native checks for Execution Plan artifacts. Exact table schemas,
-# relationships, lifecycle correlations, and ordered-route invariants are owned by
+# Markdown-native checks for Execution Plan artifacts. This profile owns generic
+# table and row cardinality. Exact table schemas, relationships, lifecycle
+# correlations, and ordered-route invariants are owned by
 # scripts/validate-execution-plan.mjs.
 syntaxVersion: markdown-engine.validation@v2
 documentVersion: 1.0.0
@@ -81,6 +82,132 @@ rules:
           - Failure and Replan Controls
           - Plan Readiness
           - Revision Log
+
+  - id: tables.total.exact
+    select:
+      target: table
+    assert:
+      selectionCount: { min: 15, max: 15 }
+
+  - id: rows.plan-control.count
+    select:
+      target: tableRow
+      section: Plan Control
+    assert:
+      selectionCount: { min: 1, max: 1 }
+
+  - id: rows.source-contract.count
+    select:
+      target: tableRow
+      section: Source Contract
+    assert:
+      selectionCount: { min: 1, max: 30 }
+
+  - id: rows.outcome-anchors.count
+    select:
+      target: tableRow
+      section: Outcome Anchors
+    assert:
+      selectionCount: { min: 1, max: 20 }
+
+  - id: rows.baseline-findings.count
+    select:
+      target: tableRow
+      section: Baseline Findings
+    assert:
+      selectionCount: { min: 1, max: 30 }
+
+  - id: rows.preconditions.count
+    select:
+      target: tableRow
+      section: Preconditions
+    assert:
+      selectionCount: { min: 1, max: 30 }
+
+  - id: rows.implementation-decisions.count
+    select:
+      target: tableRow
+      section: Implementation Decisions
+    assert:
+      selectionCount: { min: 1, max: 30 }
+
+  - id: rows.execution-phases.count
+    select:
+      target: tableRow
+      section: Execution Phases
+    assert:
+      selectionCount: { min: 1, max: 12 }
+
+  - id: rows.execution-route.count
+    select:
+      target: tableRow
+      section: Execution Route
+    assert:
+      selectionCount: { min: 1, max: 100 }
+
+  - id: rows.execution-actions.count
+    select:
+      target: tableRow
+      section: Execution Actions
+    assert:
+      selectionCount: { min: 1, max: 60 }
+
+  - id: rows.change-footprint.count
+    select:
+      target: tableRow
+      section: Change Footprint
+    assert:
+      selectionCount: { min: 1 }
+
+  - id: rows.validation-gates.count
+    select:
+      target: tableRow
+      section: Validation Gates
+    assert:
+      selectionCount: { min: 1, max: 40 }
+
+  - id: rows.failure-responses.count
+    select:
+      target: tableRow
+      section: Failure and Replan Controls
+      tableHeader:
+        - Response ID
+        - Trigger
+        - Containment
+        - Exact recovery / rollback procedure
+        - Single restored safe state
+        - Verification
+        - Escalation trigger ID
+    assert:
+      selectionCount: { min: 1, max: 30 }
+
+  - id: rows.replan-triggers.count
+    select:
+      target: tableRow
+      section: Failure and Replan Controls
+      tableHeader:
+        - Trigger ID
+        - Observable trigger
+        - Stopped Step IDs
+        - Evidence to preserve
+        - Required decision / input
+        - Exact resume condition
+    assert:
+      selectionCount: { min: 1, max: 30 }
+
+  - id: rows.plan-readiness.count
+    select:
+      target: tableRow
+      section: Plan Readiness
+    assert:
+      selectionCount: { min: 1, max: 1 }
+
+  - id: rows.revision-log.count
+    select:
+      target: tableRow
+      section: Revision Log
+    assert:
+      selectionCount: { min: 1 }
 
   - id: unresolved-placeholders.excluded
     select:
