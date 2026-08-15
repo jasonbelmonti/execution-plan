@@ -1,4 +1,5 @@
 ---
+type: ExecutionPlan
 title: Add dry-run behavior to cache pruning
 plan_id: cache-prune-dry-run
 artifact_version: "2.0"
