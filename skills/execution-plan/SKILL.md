@@ -23,6 +23,8 @@ Write its checksum to:
 ./.codefactory/execution-plans/<plan-id>/execution-plan.sha256
 ```
 
+Every canonical Execution Plan is also a native Open Knowledge Format concept. Its YAML frontmatter must include exact `type: ExecutionPlan` plus the identity, repository, baseline, source-contract, and validation-profile fields defined in the authoring guide. `Plan Control` remains the sole authority for plan state and planning depth: never add frontmatter `status` or `planning_depth`. Never add concept-level `okf_version`; that key is reserved for the OKF bundle-root `index.md`. Preserve every unowned producer frontmatter key during revision unless explicit source authority removes it.
+
 ## Contract Boundary
 
 The source contract owns **what must be true**. The Execution Plan owns **how to make it true**.
@@ -107,7 +109,8 @@ Writing a plan does not load it into later model context. At kickoff, handoff, r
 3. Reload the controlling source contract and repository instructions.
 4. Compare the recorded source fingerprints and repository baseline with current state.
 5. Treat newer explicit user instructions as higher authority.
-6. When source authority, baseline findings, constraints, validation obligations, or safe ordering changed materially, treat the loaded route as non-executable. In `CREATE` or `REVISE`, move it to `DRAFT` or `BLOCKED` before continuing. In `REVIEW`, report the required state transition externally without mutating the artifact.
+6. Preserve every unowned producer frontmatter key during `REVISE` unless explicit source authority removes it.
+7. When source authority, baseline findings, constraints, validation obligations, or safe ordering changed materially, treat the loaded route as non-executable. In `CREATE` or `REVISE`, move it to `DRAFT` or `BLOCKED` before continuing. In `REVIEW`, report the required state transition externally without mutating the artifact.
 
 Do not resume from chat memory or a stale plan.
 
@@ -180,6 +183,8 @@ For `CREATE` or `REVISE`, write the plan using every required heading and exact 
 
 `EP-SRC-*`, `EP-OUT-*`, `EP-FIND-*`, `EP-PRE-*`, `EP-DEC-*`, `EP-PH-*`, `EP-ACT-*`, `EP-GATE-*`, `EP-RESP-*`, and `EP-TRIG-*`.
 
+Emit exact `type: ExecutionPlan`, reject body-authority and reserved OKF metadata, and retain every unowned producer frontmatter key during revision.
+
 Use `None` only where the authoring guide permits it. Do not use empty cells, vague placeholders, speculative line counts, review-packet sizing, or restated follow-up work.
 
 For `REVIEW`, do not execute this mutation step. Audit the loaded artifact in place and return findings externally; do not change its Plan Control, Plan Readiness, Revision Log, checksum, or content.
@@ -217,7 +222,7 @@ export MARKDOWN_ENGINE_BIN="${MARKDOWN_ENGINE_BIN:-${MARKDOWN_ENGINE_BIN_DIR:-$H
 "$MARKDOWN_ENGINE_BIN" --file ./.codefactory/execution-plans/<plan-id>/execution-plan.candidate.md | node <skill-dir>/scripts/validate-execution-plan.mjs
 ```
 
-Require both commands to exit `0` and return `valid: true` with no diagnostics; require `evidence.engineVersion: 3.3.0` from Markdown Engine. The profile owns Markdown-native metadata, section order, placeholder checks, total table cardinality, and per-schema row bounds through `selectionCount`. The execution-plan validator consumes Markdown Engine's normalized document and owns exact table schemas, nonempty cells, explicit reference columns, enums, lifecycle consistency, route/detail correspondence, prior-step references, ordered phase membership, and gate-terminated phase exits. It does not reconstruct a dependency graph: `Execution Route` source order is the executable sequence. Neither validator replaces the semantic route audit. If a compatible runtime or validator is unavailable, do not invent a fallback or claim `READY`.
+Require both commands to exit `0` and return `valid: true` with no diagnostics; require `evidence.engineVersion: 3.3.0` from Markdown Engine. The profile owns required frontmatter presence and non-empty fields, section order, placeholder checks, total table cardinality, and per-schema row bounds through `selectionCount`. The execution-plan validator consumes Markdown Engine's normalized document and owns exact `ExecutionPlan` type, reserved and body-authority metadata exclusions, exact table schemas, nonempty cells, explicit reference columns, enums, lifecycle consistency, route/detail correspondence, prior-step references, ordered phase membership, and gate-terminated phase exits. Unknown producer-owned frontmatter keys remain valid. It does not reconstruct a dependency graph: `Execution Route` source order is the executable sequence. Neither validator replaces the semantic route audit. If a compatible runtime or validator is unavailable, do not invent a fallback or claim `READY`.
 
 3. If either validator fails, do not promote or checksum the candidate. Keep the canonical artifact non-executable, set its readiness to `REVISE`, record the diagnostics, and repair within the draft limit.
 4. Only after both validators pass, calculate and verify a candidate checksum before promotion. Install the checksum first and the matching plan second. At every interruption boundary the canonical state is the prior pair, a non-executable checksum mismatch, or the new preverified matching pair—never an unchecksummed `READY` plan:

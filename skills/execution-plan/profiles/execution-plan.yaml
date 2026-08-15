@@ -1,5 +1,6 @@
-# Markdown-native checks for Execution Plan artifacts. This profile owns generic
-# table and row cardinality. Exact table schemas, relationships, lifecycle
+# Markdown-native checks for Execution Plan artifacts. This profile owns required
+# frontmatter presence and non-empty fields plus generic table and row cardinality.
+# Exact artifact type, reserved metadata, table schemas, relationships, lifecycle
 # correlations, and ordered-route invariants are owned by
 # scripts/validate-execution-plan.mjs.
 syntaxVersion: markdown-engine.validation@v2
@@ -12,6 +13,10 @@ rules:
       frontmatterShape:
         presence: required
         fields:
+          - field: type
+            required: true
+            valueType: string
+            nonEmpty: true
           - field: title
             required: true
             valueType: string

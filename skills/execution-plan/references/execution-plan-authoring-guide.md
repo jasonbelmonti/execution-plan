@@ -29,6 +29,7 @@ Use this frontmatter shape:
 
 ```yaml
 ---
+type: ExecutionPlan
 title: Implement bounded outcome
 plan_id: bounded-outcome
 artifact_version: "2.0"
@@ -46,9 +47,12 @@ validation_profile: /absolute/skill/path/profiles/execution-plan.yaml
 
 Apply these metadata rules:
 
+- Keep exact `type: ExecutionPlan`; other non-empty concept types are not valid Execution Plan artifacts.
 - Keep `plan_id` stable while revising the route for the same completion contract.
 - Increment `revision` for every material route change.
 - Treat the single `Plan Control` row as the sole authority for lifecycle state and planning depth; do not duplicate them in frontmatter. The route validator rejects `status` and `planning_depth` frontmatter fields.
+- Preserve every unowned producer key, including scalar, sequence, and nested mapping values, during revision unless explicit source authority removes it.
+- Do not declare concept-level `okf_version`; that key is reserved for the OKF bundle-root `index.md`.
 - Use an immutable commit for `baseline_ref` when planning repository work. Record included working-tree changes in `Baseline Findings`; never imply that a commit fingerprints uncommitted work.
 - Set `source_contract` to the primary completion-authority reference and fingerprint. When authority is jointly controlled, use a canonical authority-set fingerprint; list every material source separately in `Source Contract`.
 - Use ISO 8601 timestamps with offsets.
@@ -271,7 +275,7 @@ Use only ASCII letters and digits after the final prefix hyphen; for example, `E
 
 The structural ceilings are 30 sources, 20 outcomes, 30 findings, 30 preconditions, 30 decisions, 12 phases, 100 route steps, 60 actions, 40 gates, 30 responses, and 30 replan triggers. These are coherence guards, not targets. If a trustworthy route exceeds one, split it at independently authoritative outcomes or safe execution boundaries; never omit rows merely to fit the ceiling.
 
-The structural profile checks metadata, required section order, unresolved placeholders, total table cardinality, and the documented per-schema row bounds through Markdown Engine 3.3.0 `selectionCount`. The execution-plan validator consumes Markdown Engine's normalized document and checks exact core table schemas, nonempty cells, explicit reference columns and enums, source/readiness consistency, route/detail correspondence, prior-step references, ordered phase membership, and gate-terminated phase exits. Plan-like text in explanatory prose is not a machine relationship. The semantic route audit must still reject:
+The structural profile checks required frontmatter presence and non-empty fields, required section order, unresolved placeholders, total table cardinality, and the documented per-schema row bounds through Markdown Engine 3.3.0 `selectionCount`. The execution-plan validator consumes Markdown Engine's normalized document and checks exact `ExecutionPlan` type, reserved and body-authority metadata exclusions, exact core table schemas, nonempty cells, explicit reference columns and enums, source/readiness consistency, route/detail correspondence, prior-step references, ordered phase membership, and gate-terminated phase exits. Unknown producer-owned frontmatter keys remain valid. Plan-like text in explanatory prose is not a machine relationship. The semantic route audit must still reject:
 
 - duplicate, dangling, self, or forward prerequisite references
 - duplicate or missing action/gate route entries
