@@ -4,8 +4,6 @@ import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 const ID_SUFFIX = "[A-Za-z0-9]+";
-const ARTIFACT_TYPE = "ExecutionPlan";
-const BODY_AUTHORITY_FIELDS = ["status", "planning_depth"];
 
 const TABLES = {
   planControl: {
@@ -278,18 +276,9 @@ export function validateExecutionPlan(document) {
   const diagnostics = [];
   const frontmatter = document?.frontmatter;
 
-  if (frontmatter?.type !== ARTIFACT_TYPE) {
-    diagnostic(diagnostics, "plan.frontmatter-type", `Frontmatter field type must equal ${ARTIFACT_TYPE}`, { field: "type" });
-  }
-
-  for (const field of BODY_AUTHORITY_FIELDS) {
-    if (document?.frontmatter && Object.prototype.hasOwnProperty.call(document.frontmatter, field)) diagnostic(diagnostics, "plan.duplicate-lifecycle-metadata", `Frontmatter field ${field} duplicates Plan Control authority; remove it`);
-  }
-
   if (frontmatter && Object.prototype.hasOwnProperty.call(frontmatter, "okf_version")) {
     diagnostic(diagnostics, "plan.reserved-okf-version", "Frontmatter field okf_version is reserved for the OKF bundle-root index.md", { field: "okf_version" });
   }
-
   const tables = loadTables(document, diagnostics);
   for (const [key, table] of tables) {
     table.rows.forEach((row, rowIndex) => {
@@ -334,7 +323,6 @@ export function validateExecutionPlan(document) {
     diagnostics,
     evidence: {
       artifactType: frontmatter?.type ?? null,
-      bodyAuthorityFieldsChecked: BODY_AUTHORITY_FIELDS,
       reservedFieldsChecked: ["okf_version"],
       phaseCount: indexes.get("phases").size,
       actionCount: indexes.get("actions").size,

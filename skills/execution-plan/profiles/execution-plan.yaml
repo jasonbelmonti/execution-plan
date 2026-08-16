@@ -1,8 +1,8 @@
 # Markdown-native checks for Execution Plan artifacts. This profile owns required
-# frontmatter presence and non-empty fields plus generic table and row cardinality.
-# Exact artifact type, reserved metadata, table schemas, relationships, lifecycle
-# correlations, and ordered-route invariants are owned by
-# scripts/validate-execution-plan.mjs.
+# frontmatter shape, exact type and artifact version, lifecycle-field exclusions,
+# and generic table and row cardinality. Reserved metadata, table schemas,
+# relationships, lifecycle correlations, and ordered-route invariants are owned
+# by scripts/validate-execution-plan.mjs.
 syntaxVersion: markdown-engine.validation@v2
 documentVersion: 1.0.0
 rules:
@@ -16,55 +16,59 @@ rules:
           - field: type
             required: true
             valueType: string
-            nonEmpty: true
+            equals: ExecutionPlan
           - field: title
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
           - field: plan_id
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
           - field: artifact_version
             required: true
             valueType: string
-            nonEmpty: true
+            equals: "2.0"
           - field: revision
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
           - field: created_at
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
           - field: updated_at
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
           - field: target_repo
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
           - field: target_worktree
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
           - field: target_branch
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
           - field: baseline_ref
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
           - field: source_contract
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
           - field: validation_profile
             required: true
             valueType: string
-            nonEmpty: true
+            nonBlank: true
+          - field: status
+            forbidden: true
+          - field: planning_depth
+            forbidden: true
 
   - id: sections.required
     select:
