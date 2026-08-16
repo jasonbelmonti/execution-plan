@@ -80,8 +80,8 @@ test("structural profile accepts the worked example with every 3.5.0 rule evalua
   const result = validateProfile(example);
   assert.equal(result.valid, true);
   assert.equal(result.evidence.engineVersion, "3.5.0");
-  assert.equal(result.profile.ruleCount, 19);
-  assert.equal(result.profile.evaluatedRuleCount, 19);
+  assert.equal(result.profile.ruleCount, 38);
+  assert.equal(result.profile.evaluatedRuleCount, 38);
   assert.equal(result.profile.skippedRuleCount, 0);
 });
 
@@ -108,13 +108,14 @@ test("accepts producer-owned frontmatter extensions", () => {
   assert.equal(validate(extended).valid, true);
 });
 
-test("rejects concept-level okf_version while preserving structural validity", () => {
+test("structural profile owns the concept-level okf_version exclusion", () => {
   const invalid = example.replace("type: ExecutionPlan", 'type: ExecutionPlan\nokf_version: "0.1"');
   const structural = validateProfile(invalid);
   const relational = validate(invalid);
-  assert.equal(structural.valid, true);
-  assert.equal(relational.valid, false);
-  assert.ok(hasDiagnostic(relational, "plan.reserved-okf-version", { field: "okf_version" }));
+  assert.equal(structural.valid, false);
+  assert.ok(hasFailedProfileRule(structural, "frontmatter.shape"));
+  assert.ok(structural.diagnostics.some(({ code }) => code === "profile.validation.frontmatterFieldForbidden"));
+  assert.equal(relational.valid, true);
 });
 
 test("rejects a self prerequisite", () => {
@@ -264,15 +265,44 @@ test("structural profile rejects a contracted row-count overflow", () => {
   assert.ok(hasFailedProfileRule(result, "rows.source-contract.count"));
 });
 
-test("required validator pair retains exact table-header enforcement", () => {
+test("structural profile owns exact table-header enforcement", () => {
   const invalid = example
     .replace("| Step ID | Kind | Phase ID | Required prior Step IDs |", "| Step ID | Kind | Phase ID | Required prior Step IDs | Extra |")
     .replace("| --- | --- | --- | --- |\n| EP-ACT-1 | action | EP-PH-1 | None |", "| --- | --- | --- | --- | --- |\n| EP-ACT-1 | action | EP-PH-1 | None | Extra |");
   const structural = validateProfile(invalid);
   const relational = validate(invalid);
-  assert.equal(structural.valid, true);
+  assert.equal(structural.valid, false);
   assert.equal(relational.valid, false);
-  assert.ok(hasDiagnostic(relational, "plan.table-schema", { table: "route" }));
+  assert.ok(hasFailedProfileRule(structural, "tables.execution-route.columns"));
+  assert.equal(hasDiagnostic(relational, "plan.table-schema", { table: "route" }), false);
+});
+
+test("structural profile owns outcome and precondition coverage", () => {
+  const invalid = example
+    .replace(
+      "\n\n## Baseline Findings",
+      "\n| EP-OUT-3 | EP-SRC-1 | A3 | An intentionally unassigned observable. | A focused proof would be required. |\n\n## Baseline Findings",
+    )
+    .replace(
+      "\n\n## Implementation Decisions",
+      "\n| EP-PRE-3 | A deferred optional check is not required by this route. | Confirm the deferred check remains outside the route. | EP-TRIG-1 |\n\n## Implementation Decisions",
+    );
+  const structural = validateProfile(invalid);
+  const relational = validate(invalid);
+  assert.equal(structural.valid, false);
+  assert.ok(hasFailedProfileRule(structural, "coverage.outcomes.execution-actions"));
+  assert.ok(hasFailedProfileRule(structural, "coverage.outcomes.validation-gates"));
+  assert.ok(hasFailedProfileRule(structural, "coverage.preconditions.execution-actions"));
+  assert.equal(relational.valid, true);
+});
+
+test("structural profile owns phase coverage", () => {
+  const invalid = twoPhasePlan()
+    .replace("| EP-ACT-2 | action | EP-PH-2 | EP-GATE-1 |", "| EP-ACT-2 | action | EP-PH-1 | EP-GATE-1 |")
+    .replace("| EP-GATE-2 | gate | EP-PH-2 | EP-ACT-2 |", "| EP-GATE-2 | gate | EP-PH-1 | EP-ACT-2 |");
+  const structural = validateProfile(invalid);
+  assert.equal(structural.valid, false);
+  assert.ok(hasFailedProfileRule(structural, "coverage.phases.execution-route"));
 });
 
 test("rejects READY when a source row is stale", () => {

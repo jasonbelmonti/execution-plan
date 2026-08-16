@@ -1,8 +1,8 @@
 # Markdown-native checks for Execution Plan artifacts. This profile owns required
-# frontmatter shape, exact type and artifact version, lifecycle-field exclusions,
-# and generic table and row cardinality. Reserved metadata, table schemas,
-# relationships, lifecycle correlations, and ordered-route invariants are owned
-# by scripts/validate-execution-plan.mjs.
+# frontmatter shape, exact type and artifact version, lifecycle-field and reserved
+# metadata exclusions, exact table schemas, generic ID coverage, and table/row
+# cardinality. Reference syntax, lifecycle correlations, and ordered-route
+# invariants are owned by scripts/validate-execution-plan.mjs.
 syntaxVersion: markdown-engine.validation@v2
 documentVersion: 1.0.0
 rules:
@@ -69,6 +69,8 @@ rules:
             forbidden: true
           - field: planning_depth
             forbidden: true
+          - field: okf_version
+            forbidden: true
 
   - id: sections.required
     select:
@@ -91,6 +93,226 @@ rules:
           - Failure and Replan Controls
           - Plan Readiness
           - Revision Log
+
+  - id: tables.plan-control.columns
+    select:
+      target: table
+      section: Plan Control
+    assert:
+      tableColumnsExact:
+        columns:
+          - Plan state
+          - Planning depth
+          - Source status
+          - Baseline status
+          - State rationale
+
+  - id: tables.source-contract.columns
+    select:
+      target: table
+      section: Source Contract
+    assert:
+      tableColumnsExact:
+        columns:
+          - Source ID
+          - Source reference
+          - Version / fingerprint
+          - Authority
+          - Status
+          - Planning implication
+
+  - id: tables.outcome-anchors.columns
+    select:
+      target: table
+      section: Outcome Anchors
+    assert:
+      tableColumnsExact:
+        columns:
+          - Outcome ID
+          - Source IDs
+          - Source location
+          - Required observable
+          - Proof obligation
+
+  - id: tables.baseline-findings.columns
+    select:
+      target: table
+      section: Baseline Findings
+    assert:
+      tableColumnsExact:
+        columns:
+          - Finding ID
+          - Repository evidence
+          - Current behavior / constraint
+          - Planning implication
+          - Confidence
+
+  - id: tables.preconditions.columns
+    select:
+      target: table
+      section: Preconditions
+    assert:
+      tableColumnsExact:
+        columns:
+          - Precondition ID
+          - Required state / input
+          - Verification
+          - Unmet trigger ID
+
+  - id: tables.implementation-decisions.columns
+    select:
+      target: table
+      section: Implementation Decisions
+    assert:
+      tableColumnsExact:
+        columns:
+          - Decision ID
+          - Kind
+          - Decision or assumption
+          - Finding IDs
+          - Evidence / rationale
+          - Affected action IDs
+          - Replan trigger ID
+
+  - id: tables.execution-phases.columns
+    select:
+      target: table
+      section: Execution Phases
+    assert:
+      tableColumnsExact:
+        columns:
+          - Phase ID
+          - Phase objective
+          - Entry precondition IDs
+          - Safe intermediate state
+
+  - id: tables.execution-route.columns
+    select:
+      target: table
+      section: Execution Route
+    assert:
+      tableColumnsExact:
+        columns:
+          - Step ID
+          - Kind
+          - Phase ID
+          - Required prior Step IDs
+
+  - id: tables.execution-actions.columns
+    select:
+      target: table
+      section: Execution Actions
+    assert:
+      tableColumnsExact:
+        columns:
+          - Action ID
+          - Precondition IDs
+          - Outcome IDs
+          - Targets
+          - Concrete action
+          - Observable postcondition
+          - Evidence to capture
+          - Failure response ID
+
+  - id: tables.change-footprint.columns
+    select:
+      target: table
+      section: Change Footprint
+    assert:
+      tableColumnsExact:
+        columns:
+          - Path / component
+          - Action IDs
+          - Change type
+          - Purpose
+          - Confidence
+          - Risk / ownership note
+
+  - id: tables.validation-gates.columns
+    select:
+      target: table
+      section: Validation Gates
+    assert:
+      tableColumnsExact:
+        columns:
+          - Gate ID
+          - Outcome IDs
+          - Command or check
+          - Expected observation
+          - Evidence capture
+          - Evidence artifact
+          - Evidence verification
+          - Failure response ID
+
+  - id: tables.failure-responses.columns
+    select:
+      target: table
+      section: Failure and Replan Controls
+      header:
+        - Response ID
+        - Trigger
+        - Containment
+        - Exact recovery / rollback procedure
+        - Single restored safe state
+        - Verification
+        - Escalation trigger ID
+    assert:
+      tableColumnsExact:
+        columns:
+          - Response ID
+          - Trigger
+          - Containment
+          - Exact recovery / rollback procedure
+          - Single restored safe state
+          - Verification
+          - Escalation trigger ID
+
+  - id: tables.replan-triggers.columns
+    select:
+      target: table
+      section: Failure and Replan Controls
+      header:
+        - Trigger ID
+        - Observable trigger
+        - Stopped Step IDs
+        - Evidence to preserve
+        - Required decision / input
+        - Exact resume condition
+    assert:
+      tableColumnsExact:
+        columns:
+          - Trigger ID
+          - Observable trigger
+          - Stopped Step IDs
+          - Evidence to preserve
+          - Required decision / input
+          - Exact resume condition
+
+  - id: tables.plan-readiness.columns
+    select:
+      target: table
+      section: Plan Readiness
+    assert:
+      tableColumnsExact:
+        columns:
+          - Decision
+          - Reviewed at
+          - Evidence / rationale
+          - Required revision or blocker
+
+  - id: tables.revision-log.columns
+    select:
+      target: table
+      section: Revision Log
+    assert:
+      tableColumnsExact:
+        columns:
+          - Revision
+          - Timestamp
+          - Actor
+          - Material change
+          - Reason / source
+          - Checksum reference
 
   - id: tables.total.exact
     select:
@@ -217,6 +439,94 @@ rules:
       section: Revision Log
     assert:
       selectionCount: { min: 1 }
+
+  - id: coverage.outcomes.execution-actions
+    select:
+      target: document
+    assert:
+      tableColumnCoverage:
+        source:
+          section: Outcome Anchors
+          column: Outcome ID
+          prefix: EP-OUT
+        target:
+          section: Execution Actions
+          tableHeader:
+            - Action ID
+            - Precondition IDs
+            - Outcome IDs
+            - Targets
+            - Concrete action
+            - Observable postcondition
+            - Evidence to capture
+            - Failure response ID
+          column: Outcome IDs
+        require: everySourceId
+
+  - id: coverage.outcomes.validation-gates
+    select:
+      target: document
+    assert:
+      tableColumnCoverage:
+        source:
+          section: Outcome Anchors
+          column: Outcome ID
+          prefix: EP-OUT
+        target:
+          section: Validation Gates
+          tableHeader:
+            - Gate ID
+            - Outcome IDs
+            - Command or check
+            - Expected observation
+            - Evidence capture
+            - Evidence artifact
+            - Evidence verification
+            - Failure response ID
+          column: Outcome IDs
+        require: everySourceId
+
+  - id: coverage.phases.execution-route
+    select:
+      target: document
+    assert:
+      tableColumnCoverage:
+        source:
+          section: Execution Phases
+          column: Phase ID
+          prefix: EP-PH
+        target:
+          section: Execution Route
+          tableHeader:
+            - Step ID
+            - Kind
+            - Phase ID
+            - Required prior Step IDs
+          column: Phase ID
+        require: everySourceId
+
+  - id: coverage.preconditions.execution-actions
+    select:
+      target: document
+    assert:
+      tableColumnCoverage:
+        source:
+          section: Preconditions
+          column: Precondition ID
+          prefix: EP-PRE
+        target:
+          section: Execution Actions
+          tableHeader:
+            - Action ID
+            - Precondition IDs
+            - Outcome IDs
+            - Targets
+            - Concrete action
+            - Observable postcondition
+            - Evidence to capture
+            - Failure response ID
+          column: Precondition IDs
+        require: everySourceId
 
   - id: unresolved-placeholders.excluded
     select:
