@@ -76,38 +76,27 @@ test("accepts the worked example and preserves its explicit route", () => {
   assert.deepEqual(result.evidence.routeOrder, ["EP-ACT-1", "EP-GATE-1", "EP-ACT-2", "EP-GATE-2"]);
 });
 
-test("structural profile accepts the worked example with every 3.3.0 rule evaluated", () => {
+test("structural profile accepts the worked example with every 3.5.0 rule evaluated", () => {
   const result = validateProfile(example);
   assert.equal(result.valid, true);
-  assert.equal(result.evidence.engineVersion, "3.3.0");
+  assert.equal(result.evidence.engineVersion, "3.5.0");
   assert.equal(result.profile.ruleCount, 19);
   assert.equal(result.profile.evaluatedRuleCount, 19);
   assert.equal(result.profile.skippedRuleCount, 0);
 });
 
-test("required validator pair rejects missing and empty artifact type", () => {
+test("structural profile requires the exact artifact type", () => {
   const variants = [
     example.replace("type: ExecutionPlan\n", ""),
     example.replace("type: ExecutionPlan", 'type: ""'),
+    example.replace("type: ExecutionPlan", "type: WorkItem"),
   ];
 
   for (const variant of variants) {
     const structural = validateProfile(variant);
-    const relational = validate(variant);
     assert.equal(structural.valid, false);
     assert.ok(hasFailedProfileRule(structural, "frontmatter.shape"));
-    assert.equal(relational.valid, false);
-    assert.ok(hasDiagnostic(relational, "plan.frontmatter-type", { field: "type" }));
   }
-});
-
-test("relational validator rejects a different non-empty artifact type", () => {
-  const invalid = example.replace("type: ExecutionPlan", "type: WorkItem");
-  const structural = validateProfile(invalid);
-  const relational = validate(invalid);
-  assert.equal(structural.valid, true);
-  assert.equal(relational.valid, false);
-  assert.ok(hasDiagnostic(relational, "plan.frontmatter-type", { field: "type" }));
 });
 
 test("accepts producer-owned frontmatter extensions", () => {
@@ -187,16 +176,28 @@ test("rejects an empty core cell", () => {
   assert.ok(hasDiagnostic(result, "plan.empty-cell"));
 });
 
-test("rejects semantically decoded lifecycle authority", () => {
+test("structural profile rejects semantically decoded lifecycle authority", () => {
   const variants = [
     example.replace("title:", '"sta\\u0074us": BLOCKED\n"planning\\u005fdepth": compact\ntitle:'),
     example.replace("title:", "? status\n: BLOCKED\n? planning_depth\n: compact\ntitle:"),
   ];
   for (const variant of variants) {
-    const result = validate(variant);
+    const result = validateProfile(variant);
     assert.equal(result.valid, false);
-    assert.equal(result.diagnostics.filter(({ code }) => code === "plan.duplicate-lifecycle-metadata").length, 2);
+    assert.equal(result.diagnostics.filter(({ code }) => code === "profile.validation.frontmatterFieldForbidden").length, 2);
   }
+});
+
+test("structural profile requires non-blank metadata values", () => {
+  const result = validateProfile(example.replace("target_branch: codex/cache-prune-dry-run", 'target_branch: "   "'));
+  assert.equal(result.valid, false);
+  assert.ok(result.diagnostics.some(({ code }) => code === "profile.validation.frontmatterFieldBlank"));
+});
+
+test("structural profile requires the current artifact version", () => {
+  const result = validateProfile(example.replace('artifact_version: "2.0"', 'artifact_version: "2.1"'));
+  assert.equal(result.valid, false);
+  assert.ok(result.diagnostics.some(({ code }) => code === "profile.validation.frontmatterFieldValueMismatch"));
 });
 
 test("required validator pair rejects malformed stopped-step references", () => {
