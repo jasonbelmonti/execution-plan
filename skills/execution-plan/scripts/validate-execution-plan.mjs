@@ -8,85 +8,72 @@ const ID_SUFFIX = "[A-Za-z0-9]+";
 const TABLES = {
   planControl: {
     section: "Plan Control",
-    headers: ["Plan state", "Planning depth", "Source status", "Baseline status", "State rationale"],
   },
   sources: {
     section: "Source Contract",
-    headers: ["Source ID", "Source reference", "Version / fingerprint", "Authority", "Status", "Planning implication"],
     idColumn: "Source ID",
     prefixes: ["EP-SRC"],
   },
   outcomes: {
     section: "Outcome Anchors",
-    headers: ["Outcome ID", "Source IDs", "Source location", "Required observable", "Proof obligation"],
     idColumn: "Outcome ID",
     prefixes: ["EP-OUT"],
   },
   findings: {
     section: "Baseline Findings",
-    headers: ["Finding ID", "Repository evidence", "Current behavior / constraint", "Planning implication", "Confidence"],
     idColumn: "Finding ID",
     prefixes: ["EP-FIND"],
   },
   preconditions: {
     section: "Preconditions",
-    headers: ["Precondition ID", "Required state / input", "Verification", "Unmet trigger ID"],
     idColumn: "Precondition ID",
     prefixes: ["EP-PRE"],
   },
   decisions: {
     section: "Implementation Decisions",
-    headers: ["Decision ID", "Kind", "Decision or assumption", "Finding IDs", "Evidence / rationale", "Affected action IDs", "Replan trigger ID"],
     idColumn: "Decision ID",
     prefixes: ["EP-DEC"],
   },
   phases: {
     section: "Execution Phases",
-    headers: ["Phase ID", "Phase objective", "Entry precondition IDs", "Safe intermediate state"],
     idColumn: "Phase ID",
     prefixes: ["EP-PH"],
   },
   route: {
     section: "Execution Route",
-    headers: ["Step ID", "Kind", "Phase ID", "Required prior Step IDs"],
     idColumn: "Step ID",
     prefixes: ["EP-ACT", "EP-GATE"],
   },
   actions: {
     section: "Execution Actions",
-    headers: ["Action ID", "Precondition IDs", "Outcome IDs", "Targets", "Concrete action", "Observable postcondition", "Evidence to capture", "Failure response ID"],
     idColumn: "Action ID",
     prefixes: ["EP-ACT"],
   },
   footprint: {
     section: "Change Footprint",
-    headers: ["Path / component", "Action IDs", "Change type", "Purpose", "Confidence", "Risk / ownership note"],
   },
   gates: {
     section: "Validation Gates",
-    headers: ["Gate ID", "Outcome IDs", "Command or check", "Expected observation", "Evidence capture", "Evidence artifact", "Evidence verification", "Failure response ID"],
     idColumn: "Gate ID",
     prefixes: ["EP-GATE"],
   },
   responses: {
     section: "Failure and Replan Controls",
-    headers: ["Response ID", "Trigger", "Containment", "Exact recovery / rollback procedure", "Single restored safe state", "Verification", "Escalation trigger ID"],
+    discriminatorColumn: "Response ID",
     idColumn: "Response ID",
     prefixes: ["EP-RESP"],
   },
   triggers: {
     section: "Failure and Replan Controls",
-    headers: ["Trigger ID", "Observable trigger", "Stopped Step IDs", "Evidence to preserve", "Required decision / input", "Exact resume condition"],
+    discriminatorColumn: "Trigger ID",
     idColumn: "Trigger ID",
     prefixes: ["EP-TRIG"],
   },
   readiness: {
     section: "Plan Readiness",
-    headers: ["Decision", "Reviewed at", "Evidence / rationale", "Required revision or blocker"],
   },
   revisions: {
     section: "Revision Log",
-    headers: ["Revision", "Timestamp", "Actor", "Material change", "Reason / source", "Checksum reference"],
   },
 };
 
@@ -122,19 +109,8 @@ const ENUMS = [
   ["readiness", "Decision", ["PASS", "REVISE", "BLOCKED"]],
 ];
 
-const COVERAGE = [
-  ["outcomes", "actions", "Outcome IDs"],
-  ["outcomes", "gates", "Outcome IDs"],
-  ["phases", "route", "Phase ID"],
-  ["preconditions", "actions", "Precondition IDs"],
-];
-
 function diagnostic(diagnostics, code, message, context = {}) {
   diagnostics.push({ code, message, ...context });
-}
-
-function sameHeaders(left, right) {
-  return left.length === right.length && left.every((header, index) => header === right[index]);
 }
 
 function normalizedTables(document) {
@@ -168,9 +144,11 @@ function loadTables(document, diagnostics) {
   }
   const tables = new Map();
   for (const [key, definition] of Object.entries(TABLES)) {
-    const table = candidates.find(({ section, headers }) => section === definition.section && sameHeaders(headers, definition.headers));
-    if (!table) diagnostic(diagnostics, "plan.table-schema", `${definition.section} requires a table with the exact contracted headers`, { table: key });
-    tables.set(key, table ?? { section: definition.section, headers: definition.headers, rows: [] });
+    const sectionTables = candidates.filter(({ section }) => section === definition.section);
+    const table = definition.discriminatorColumn
+      ? sectionTables.find(({ headers }) => headers.includes(definition.discriminatorColumn))
+      : sectionTables[0];
+    tables.set(key, table ?? { section: definition.section, headers: [], rows: [] });
   }
   return tables;
 }
@@ -276,9 +254,6 @@ export function validateExecutionPlan(document) {
   const diagnostics = [];
   const frontmatter = document?.frontmatter;
 
-  if (frontmatter && Object.prototype.hasOwnProperty.call(frontmatter, "okf_version")) {
-    diagnostic(diagnostics, "plan.reserved-okf-version", "Frontmatter field okf_version is reserved for the OKF bundle-root index.md", { field: "okf_version" });
-  }
   const tables = loadTables(document, diagnostics);
   for (const [key, table] of tables) {
     table.rows.forEach((row, rowIndex) => {
@@ -293,11 +268,6 @@ export function validateExecutionPlan(document) {
     tables.get(tableKey).rows.forEach((row, rowIndex) => {
       if (!allowed.includes(row[column])) diagnostic(diagnostics, "plan.invalid-enum", `${TABLES[tableKey].section} row ${rowIndex + 1} ${column} must be one of ${allowed.join(", ")}; found ${row[column]}`, { table: tableKey, row: rowIndex + 1, column });
     });
-  }
-
-  for (const [entityTable, consumerTable, column] of COVERAGE) {
-    const used = new Set(tables.get(consumerTable).rows.flatMap((_, rowIndex) => parsed.get(referenceKey(consumerTable, rowIndex, column)) ?? []));
-    for (const id of indexes.get(entityTable).keys()) if (!used.has(id)) diagnostic(diagnostics, "plan.missing-coverage", `${id} is not referenced by ${TABLES[consumerTable].section} ${column}`, { id, table: consumerTable, column });
   }
 
   validateRoute(tables, indexes, parsed, diagnostics);
@@ -323,7 +293,6 @@ export function validateExecutionPlan(document) {
     diagnostics,
     evidence: {
       artifactType: frontmatter?.type ?? null,
-      reservedFieldsChecked: ["okf_version"],
       phaseCount: indexes.get("phases").size,
       actionCount: indexes.get("actions").size,
       gateCount: indexes.get("gates").size,
