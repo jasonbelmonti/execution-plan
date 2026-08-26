@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
-const ID_SUFFIX = "[A-Za-z0-9]+";
+const ID_SUFFIX = "[A-Z0-9]+";
 
 const TABLES = {
   planControl: {

@@ -271,7 +271,7 @@ Use one stable ID per source row and one or more references where a relationship
 
 Use comma-separated IDs when a cell references multiple rows. Use `None` only in `Execution Route.Required prior Step IDs` when the step has no prerequisite. Use `None.` for a passed readiness decision with no remaining repair. Do not use empty cells.
 
-Use only ASCII letters and digits after the final prefix hyphen; for example, `EP-ACT-1`, `EP-ACT-A2`, or `EP-GATE-check1`. Periods, underscores, and additional hyphens are not valid inside or at the end of an ID. This keeps plan references unambiguous beside prose punctuation and artifact filenames.
+Use uppercase ASCII letters and digits only after the final prefix hyphen; for example, `EP-ACT-1`, `EP-ACT-A2`, or `EP-GATE-CHECK1`. Periods, lowercase letters, underscores, and additional hyphens are not valid inside or at the end of an ID. This keeps plan references unambiguous beside prose punctuation and artifact filenames.
 
 The structural ceilings are 30 sources, 20 outcomes, 30 findings, 30 preconditions, 30 decisions, 12 phases, 100 route steps, 60 actions, 40 gates, 30 responses, and 30 replan triggers. These are coherence guards, not targets. If a trustworthy route exceeds one, split it at independently authoritative outcomes or safe execution boundaries; never omit rows merely to fit the ceiling.
 
