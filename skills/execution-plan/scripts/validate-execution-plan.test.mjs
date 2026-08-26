@@ -136,6 +136,13 @@ test("rejects an undeclared route prerequisite", () => {
   assert.ok(hasDiagnostic(result, "plan.dangling-reference"));
 });
 
+test("rejects lowercase identifier suffixes", () => {
+  const result = validate(example.replaceAll("EP-GATE-1", "EP-GATE-check1"));
+  assert.equal(result.valid, false);
+  assert.ok(hasDiagnostic(result, "plan.invalid-id", { table: "route" }));
+  assert.ok(hasDiagnostic(result, "plan.invalid-reference-list", { column: "Required prior Step IDs" }));
+});
+
 test("rejects a malformed route phase", () => {
   const result = validate(example.replace("| EP-ACT-1 | action | EP-PH-1 |", "| EP-ACT-1 | action | bogus EP-PH-1 text |"));
   assert.equal(result.valid, false);
@@ -334,9 +341,9 @@ test("rejects dangling unmet and escalation triggers", () => {
 });
 
 test("rejects undeclared stopped steps", () => {
-  const result = validate(example.replace("| EP-ACT-1, EP-GATE-1, EP-ACT-2, EP-GATE-2 | Baseline command output", "| EP-ACT-ghost | Baseline command output"));
+  const result = validate(example.replace("| EP-ACT-1, EP-GATE-1, EP-ACT-2, EP-GATE-2 | Baseline command output", "| EP-ACT-GHOST | Baseline command output"));
   assert.equal(result.valid, false);
-  assert.ok(hasDiagnostic(result, "plan.dangling-reference", { reference: "EP-ACT-ghost" }));
+  assert.ok(hasDiagnostic(result, "plan.dangling-reference", { reference: "EP-ACT-GHOST" }));
 });
 
 test("allows plan-like text in explanatory prose", () => {
