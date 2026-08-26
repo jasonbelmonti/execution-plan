@@ -98,6 +98,8 @@ Read [references/example-execution-plan.md](references/example-execution-plan.md
 
 Treat [profiles/execution-plan.yaml](profiles/execution-plan.yaml) and [scripts/validate-execution-plan.mjs](scripts/validate-execution-plan.mjs) as machine-owned validators during ordinary planning. Read them only when changing the schema or interpreting a validation defect; running them is required before `READY`.
 
+Treat [profiles/execution-plan-graph.yaml](profiles/execution-plan-graph.yaml) as the canonical file-backed Markdown Trace profile for execution-plan source anchoring plus outcome-to-action and outcome-to-gate connectivity. Its focused pass/fail artifacts live under [fixtures/graph-validation](fixtures/graph-validation). Shared runtime installation and activation are owned by skill-fleet.
+
 Do not inspect validator runtime code unless validation behavior itself is being debugged.
 
 ## Durable Artifact Context Contract
@@ -288,4 +290,5 @@ Any execution or review handoff must include the exact plan path and every contr
 - [references/execution-plan-authoring-guide.md](references/execution-plan-authoring-guide.md): exact artifact schema, ID and dependency semantics, planning tests, conditional sections, and examples.
 - [references/example-execution-plan.md](references/example-execution-plan.md): complete fictional `READY` plan for schema and validator orientation.
 - [profiles/execution-plan.yaml](profiles/execution-plan.yaml): Markdown-native metadata, section-order, and placeholder validation profile.
+- [profiles/execution-plan-graph.yaml](profiles/execution-plan-graph.yaml): file-backed Markdown Trace graph-connectivity profile with focused fixtures under `fixtures/graph-validation/`.
 - [scripts/validate-execution-plan.mjs](scripts/validate-execution-plan.mjs): normalized-document relational, lifecycle/readiness, and ordered-route validator.
