@@ -107,12 +107,12 @@ Writing a plan does not load it into later model context. At kickoff, handoff, r
 1. Read the complete plan from disk.
 2. Verify `execution-plan.sha256` when present.
 3. Reload the controlling source contract and repository instructions.
-4. Compare the recorded source fingerprints and repository baseline with current state.
+4. Compare the recorded source fingerprints and repository baseline with current state. Distinguish contract changes, checkpoint-only source updates, expected implementation progress, and unrelated drift using the authoring guide; verify integrity before relying on any comparison.
 5. Treat newer explicit user instructions as higher authority.
 6. Preserve every unowned producer frontmatter key during `REVISE` unless explicit source authority removes it.
 7. When source authority, baseline findings, constraints, validation obligations, or safe ordering changed materially, treat the loaded route as non-executable. In `CREATE` or `REVISE`, move it to `DRAFT` or `BLOCKED` before continuing. In `REVIEW`, report the required state transition externally without mutating the artifact.
 
-Do not resume from chat memory or a stale plan.
+Do not resume from chat memory or a stale plan. Past gate results must also remain applicable to the current code, tests, fixtures, configuration, and environment. The plan specifies how to assess that applicability; observed results and source comparisons belong in existing execution evidence or a source checkpoint, not in the prospective plan.
 
 ## Required Workflow
 
@@ -175,6 +175,8 @@ Map every outcome anchor to at least one action and at least one validation gate
 
 For each gate, specify the exact command or manual check when known, expected observable result, evidence-capture procedure, evidence artifact, evidence verification, and failure response. Planned evidence is a capture instruction, not proof that the check passed.
 
+For each outcome's proving checks, ask whether a plausible incorrect implementation within the stated boundary and risk could pass; if so, specify the observation that distinguishes it. Use source-authorized behavior and independent expected results; supporting gates such as typechecking do not alone prove runtime outcomes. Specify the tested-state provenance, invalidation conditions, and affected rechecks in existing gate fields using the authoring guide. Do not invent new acceptance obligations or mandatory tests to fill categories.
+
 Define containment and recovery for failed actions or gates. Add the applicable conditional sections for migrations, rollout, compatibility, security, privacy, observability, external coordination, or persistent data. Name observable stop and replan triggers, work that may continue independently, and exact resume conditions.
 
 ### 7. Write the artifact
@@ -199,7 +201,8 @@ Read the plan as the receiving executor and audit it against the loaded sources 
 - decision closure: no hidden product, safety, data, or approval choice remains
 - route integrity: every action and gate appears once in a complete safe sequence, with prerequisites above their consumers
 - action executability: targets, changes, postconditions, evidence, and failure responses are concrete
-- outcome coverage: every anchor maps to an action and an objective gate, with no orphan references
+- outcome coverage: every anchor maps to an action and sufficient objective gates that distinguish its required outcome from plausible incorrect behavior, with no orphan references
+- evidence applicability: capture identifies the tested inputs, detects unexpected input changes during a check, and defines how later changes invalidate affected results before reuse or handoff
 - operational safety: recovery and replan controls match the failure consequences
 - handoff viability: another capable agent can start at the first action without material replanning
 

@@ -90,6 +90,13 @@ A `READY` row requires `current`, `inspected`, and a `PASS` decision in `Plan Re
 
 Record one row per material source. Use only `current`, `missing`, `conflicted`, or `stale` in `Status`. `Plan Control` summarizes the rows using `conflicted` before `missing`, `missing` before `stale`, and `current` only when every row is current. Distinguish controlling outcome authority from repository operating instructions, design constraints, baseline behavior, and informative context. When sources overlap, state the precedence or conflict rule explicitly in `Authority`. Resolve every precedence conflict before a plan becomes `READY`.
 
+On resume or a source fingerprint change, reread the complete source and compare it with the recorded version. Verify the source's own checksum when supplied; an integrity mismatch is unresolved, even if a checkpoint edit seems likely. Record the compared versions and findings in existing execution evidence or a source checkpoint. Classify the differences:
+
+- A change to controlling outcomes, scope, constraints, proof obligations, approval, or repository instructions requires the existing source and plan change-control rules.
+- A source checkpoint or provenance update alone can leave the completion contract current. Establish that from the full comparison rather than blindly excluding a section or metadata key. Retain the plan's original source fingerprint as the comparison baseline and reference the reconciliation at handoff; do not silently rewrite the checksummed plan. Updating its recorded fields still follows normal revision and validation.
+- Expected implementation progress is a departure from the original repository baseline. Reconcile it with the executed actions and their postconditions rather than treating every new commit as invalidating the route. Material changes to baseline findings, targets, or safe ordering still require revision.
+- Unrelated repository drift requires an impact check: shared dependencies, tests, fixtures, configuration, and environment changes can invalidate evidence even when planned targets did not change. Do not reuse evidence whose applicability is uncertain.
+
 ### Outcome Anchors
 
 ```markdown
@@ -213,6 +220,17 @@ Gate rules:
 - Include focused checks early enough to localize failures and broader regression checks after integration.
 - For `standard` and `expanded` plans, cover relevant positive, negative, edge, and regression behavior; omit inapplicable categories explicitly in the rationale rather than creating empty gates.
 - Specify how evidence is captured and verified, not only where it should appear; do not report planned checks as passed.
+
+For each outcome, ask whether a plausible incorrect implementation within the stated boundary and risk could pass its proposed proof. If so, specify the observable result that rules it out; retain existing proof when it already distinguishes that failure. Verify the affected entry point and resulting state where the source promises runtime behavior. Derive expected results from source authority, independently specified fixtures, or preserved baseline behavior; do not merely call the changed implementation to calculate its own expected answer. Existing focused checks or bounded inspection may suffice. Typechecks and other supporting gates can establish intermediate safety while later gates prove the actual outcome.
+
+For bug fixes, prefer a relevant regression check that fails on the original behavior and passes after the fix when feasible. A setup failure is not a behavioral reproduction. If replaying the original behavior is unsafe or impractical, record the limitation and source-compatible alternative proof. Do not widen source obligations or add redundant tests solely to satisfy this preference.
+
+Use the existing `Evidence capture`, `Evidence artifact`, `Evidence verification`, and failure-response fields to make evidence reusable safely:
+
+- Identify the outcome and gate, observed result, tested code or artifact state, and relevant test, configuration, fixture, dependency, and environment versions. For a dirty worktree, retain staged and unstaged changes and relevant untracked inputs or equivalent content fingerprints; a commit alone is insufficient. Include relevant ignored or generated inputs actually consumed by the check, without copying secrets. Verify that recorded source inputs stayed fixed throughout the check; unexpected changes make its result unproven. Intended mutations to disposable runtime state are outputs to verify, not source drift.
+- Name the proof dependencies and the checks to reassess after later edits, on resume, and before the implementation review handoff. Include shared callers and dependencies, test assertions, and expected fixtures. Invalidate affected results when these inputs change or their relevance cannot be established. Preserve old results for diagnosis, exclude them from current proof, and rerun the affected checks before a dependent step or review claim relies on them.
+- Retain unaffected results when an inspected comparison justifies reuse. A documentation edit need not invalidate runtime checks unless it is an input to them; a shared selection change can invalidate multiple output-mode checks. Do not rerun every gate solely because HEAD changed.
+- Keep observed applicability decisions in existing execution evidence or the source's optional checkpoint. The plan remains prospective and gains no execution-status table. Stale evidence alone does not change the completion contract; revise the plan only when its sources or route materially change under the existing rules. In `REVIEW`, report required repairs externally without updating any artifact.
 
 ### Failure and Replan Controls
 
@@ -342,7 +360,7 @@ Before `PASS`, answer each question with evidence from the plan and loaded sourc
 5. Can every precondition be checked before its dependent action?
 6. Does `Execution Route` contain every action and gate exactly once, keep phases contiguous, and place every required prior step above its consumer?
 7. Does every action identify a concrete target, change, postcondition, evidence capture, required predecessor gate, and failure response?
-8. Does every outcome map to sufficient actions and objective gates, including relevant regression behavior?
+8. Does every outcome map to sufficient actions and objective gates, including relevant regression behavior and an observation that distinguishes plausible incorrect implementations? Do the capture and verification procedures identify tested inputs and prevent stale or unexpectedly changing-input results from being reused as current proof?
 9. Can every phase stop in the safe intermediate state it claims?
 10. Does every failure response provide an ownership-safe procedure that restores one verifiable state, and do stop controls match the consequence of failure?
 11. Are conditional operational subsections present wherever the route involves their risks?
