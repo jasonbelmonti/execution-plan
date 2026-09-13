@@ -76,10 +76,10 @@ test("accepts the worked example and preserves its explicit route", () => {
   assert.deepEqual(result.evidence.routeOrder, ["EP-ACT-1", "EP-GATE-1", "EP-ACT-2", "EP-GATE-2"]);
 });
 
-test("structural profile accepts the worked example with every 3.5.0 rule evaluated", () => {
+test("structural profile accepts the worked example with every 3.6.0 rule evaluated", () => {
   const result = validateProfile(example);
   assert.equal(result.valid, true);
-  assert.equal(result.evidence.engineVersion, "3.5.0");
+  assert.equal(result.evidence.engineVersion, "3.6.0");
   assert.equal(result.profile.ruleCount, 38);
   assert.equal(result.profile.evaluatedRuleCount, 38);
   assert.equal(result.profile.skippedRuleCount, 0);
