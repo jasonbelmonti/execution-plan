@@ -1,5 +1,7 @@
 # Execution Plan Authoring Guide
 
+Use the compact-first Context economy rules in SKILL.md. Required table columns establish structure, not a prose quota. Prefer exact IDs and a single shared evidence or recovery rule over copied paragraphs; keep enough local detail for the next action to be executable.
+
 ## Contents
 
 1. Authority and planning boundary
