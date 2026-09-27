@@ -79,7 +79,7 @@ test("accepts the worked example and preserves its explicit route", () => {
 test("structural profile accepts the worked example with every rule evaluated on the approved runtime", () => {
   const result = validateProfile(example);
   assert.equal(result.valid, true);
-  assert.equal(result.evidence.engineVersion, process.env.MARKDOWN_ENGINE_EXPECTED_VERSION ?? "3.8.0");
+  assert.equal(result.evidence.engineVersion, process.env.MARKDOWN_ENGINE_EXPECTED_VERSION ?? "4.0.0");
   assert.equal(result.profile.ruleCount, 38);
   assert.equal(result.profile.evaluatedRuleCount, 38);
   assert.equal(result.profile.skippedRuleCount, 0);
