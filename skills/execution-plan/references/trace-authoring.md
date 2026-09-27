@@ -2,7 +2,7 @@
 
 Apply this convention to new complete artifacts and authorized material revisions.
 This workflow explicitly selects [profiles/trace.json](../profiles/trace.json), using
-Markdown Trace 0.1.1's document graph. The [worked example](../references/example-execution-plan.md) shows
+Markdown Trace 0.1.3's document graph. The [worked example](../references/example-execution-plan.md) shows
 annotation placement. Existing structural profiles, semantic review, lifecycle
 and source precedence remain authoritative. Historical documents may remain
 unannotated until revision; never rewrite them during review.
@@ -66,6 +66,12 @@ applicable identities too, or retain a full read. A row does not include the who
 surrounding section. A source or profile edit invalidates prior selections. Preserve whole-read
 mandates and use full reads whenever coverage or cost favors them.
 
+For agent reading, prefer `--format context-text --report-file PATH` with the same
+roots, filters and budgets. Choose a new report path in an existing directory;
+read exact excerpts and compact status first, then retained JSON only when its
+provenance or omitted detail changes a decision. Keep `--format context` for
+machine consumers that parse the JSON. Neither view changes reading obligations.
+
 These are local document profiles. For cross-document traversal, a host must choose
 one compatible interpretation and explicit pinned occurrence bindings; profiles
 with different vocabularies cannot simply be combined. A bare matching ID never
@@ -76,7 +82,7 @@ permission to substitute excerpts for full sources.
 ## Maintainer probes
 
 Run `MARKDOWN_TRACE_SKILL_DIR=/absolute/installed/markdown-trace python3
-<skill-dir>/tests/test_trace_authoring.py` on the host's verified 0.1.1 binding.
+<skill-dir>/tests/test_trace_authoring.py` on the host's verified 0.1.3 binding.
 The probes check example graphs, located declaration/edge/endpoint defects and
 repair, exact scoped text including governing content, and explicit zero-budget
 omissions. Run the original Markdown Engine compatibility checks as well.
