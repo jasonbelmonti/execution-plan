@@ -28,6 +28,7 @@ Domain kinds and prefixes: plan-item: EP.
 - `Execution Route` and `Change Footprint` contain references, never second action/gate declarations. Their rows retain their original meaning and order.
 - In Execution Actions, link Outcome IDs with `rel=implements`. In Validation Gates, link Outcome IDs with `rel=verifies`. Keep comma-separated visible ID lists unchanged. Other existing ID references create generic `references` edges.
 - Trace maps the first prefix component, so all `EP-*` entities share kind `plan-item`. Table-specific source rules check definition and typed-reference placement; the existing plan validator still checks exact subtype references, outcome coverage, dependencies and order. Trace traversal order never becomes execution order.
+- For annotated plans, the plan validator also requires every visible Outcome ID in action and gate cells to have exactly one matching `implements` or `verifies` link. It checks each resolved destination, including reference-style links, so partial multi-outcome annotations and mismatched labels cannot pass the required validator pair. Unannotated historical plans retain their existing validation behavior.
 - Keep the full applicable Execution Route, source obligations, shared gate-evidence prose and failure controls in worker selections. Row-only action/gate extraction is insufficient. Checksum only after all annotations and existing readiness gates are final.
 
 Unrecognized external ticket/test IDs are source citations, not local graph
@@ -79,3 +80,6 @@ Run `MARKDOWN_TRACE_SKILL_DIR=/absolute/installed/markdown-trace python3
 The probes check example graphs, located declaration/edge/endpoint defects and
 repair, exact scoped text including governing content, and explicit zero-budget
 omissions. Run the original Markdown Engine compatibility checks as well.
+Run `node --test <skill-dir>/scripts/validate-outcome-annotations.test.mjs`
+for partial outcome annotations, mismatched destinations, reference-style links
+and historical-plan compatibility through the plan validator CLI.

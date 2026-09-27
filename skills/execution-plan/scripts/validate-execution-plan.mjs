@@ -2,6 +2,7 @@
 
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { validateOutcomeAnnotations } from "./validate-outcome-annotations.mjs";
 
 const ID_SUFFIX = "[A-Z0-9]+";
 
@@ -271,6 +272,7 @@ export function validateExecutionPlan(document) {
   }
 
   validateRoute(tables, indexes, parsed, diagnostics);
+  diagnostics.push(...validateOutcomeAnnotations(document));
 
   const planControl = tables.get("planControl").rows[0];
   const readiness = tables.get("readiness").rows[0];
