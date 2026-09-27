@@ -41,7 +41,7 @@ class TraceAuthoring(unittest.TestCase):
         if info.returncode:
             raise RuntimeError(info.stderr)
         cls.identity = json.loads(info.stdout)
-        if cls.identity['packageVersion'] != '0.1.2':
+        if cls.identity['packageVersion'] != '0.1.3':
             raise RuntimeError('Requalify this profile against the selected Trace release.')
         cls.original = (ROOT / EXAMPLES[0]).read_text()
         print('Trace source:', cls.identity['sourceCommit'])
