@@ -80,11 +80,30 @@ Any material route revision moves a `READY` plan to `DRAFT` until the affected s
 
 Keep the core schema stable and calibrate the detail inside it:
 
-- `compact`: localized, reversible work using a known repository pattern. Usually one phase with a short action and gate sequence.
-- `standard`: the default for multi-file, cross-boundary, or moderately uncertain work. Record alternatives, regression coverage, and meaningful recovery behavior.
-- `expanded`: broad, high-risk, migration, security, privacy, persistent-data, compatibility, or user-visible workflow work. Add the applicable operational sections and explicit coordination gates.
+- `compact`: default for a bounded route whose consequential decisions can be stated concisely, including multi-file work. Usually one phase with a short action and gate sequence.
+- `standard`: a named route uncertainty or interacting constraint requires additional explanation. Record only materially competitive alternatives and relevant recovery behavior.
+- `expanded`: consequential failure or coupled migration, trust, data or compatibility obligations require detailed treatment. Add only applicable operational sections and coordination gates.
 
-Choose depth from route uncertainty, change breadth, reversibility, and consequence of failure. Split the plan when unrelated routes have different completion contracts, owners, or safe execution boundaries.
+Choose depth from the explanation needed to resolve route uncertainty and consequential failure. Breadth or a risk-category label alone does not set document length. Split the plan when unrelated routes have different completion contracts, owners, or safe execution boundaries.
+
+## Trace-compatible authoring
+
+For new complete artifacts and authorized material revisions, read
+[Trace authoring](references/trace-authoring.md) and use the owned
+[Trace profile](profiles/trace.json). Add stable definitions and meaningful
+relationships while preserving visible headings, ID labels and existing schemas.
+Run Trace alongside the existing structural and semantic gates before claiming
+readiness. This requirement applies to complete authored artifacts, not partial
+blocked responses or untouched historical documents. Review remains read-only;
+report legacy annotation gaps before promising scoped extraction.
+
+## Context economy
+
+Aim for 800–1,500 words for a compact plan; this is an advisory relevance-review trigger, not a correctness limit. Preserve the schema and route gates. State source requirements once in their owning contract and use outcome IDs here. Actions contribute the change and postcondition; gates contribute the proof procedure. Share recovery/evidence instructions by IDs instead of repeating them in each row. Do not invent alternative designs, operational sections or speculative future steps for completeness.
+
+Authors, plan reviewers and the coordinator read the complete plan and controlling sources. Bounded workers may instead read a supervisor-verified selection containing their action details, due gates, prerequisites, applicable decisions, shared invariants and source obligations. The supervisor inspects full sources, checks dependency closure and records immutable identities, exact selections and omission rationale. The full plan remains the sequencing authority. Honor explicit upstream full-read mandates; when coverage or authorization is uncertain, use full reads. Whole-plan review is not a scoped worker assignment.
+
+The complete-read rules below apply to authors/reviewers/coordinators and execution without a verified scoped handoff. A scoped worker verifies current source identities and reads its packet and selections at kickoff or resume. Any source change stops reliance on the old selection until reconciled; a digest check does not prove semantic coverage.
 
 ## Conditional Reference Loading
 
@@ -147,7 +166,7 @@ Record findings with concrete evidence such as a path and symbol, command output
 Choose the smallest coherent route that can satisfy all source outcomes while preserving declared constraints and existing required behavior. Record:
 
 - the selected internal approach and sequencing rationale
-- materially plausible alternatives rejected and why
+- materially competitive alternatives rejected and why, only when they explain the selected route
 - assumptions that remain inside implementation authority
 - dependencies, access, tooling, and environment preconditions
 - safe intermediate states and the earliest proving slice
@@ -225,7 +244,7 @@ export MARKDOWN_ENGINE_BIN="${MARKDOWN_ENGINE_BIN:-${MARKDOWN_ENGINE_BIN_DIR:-$H
 "$MARKDOWN_ENGINE_BIN" --file ./.codefactory/execution-plans/<plan-id>/execution-plan.candidate.md | node <skill-dir>/scripts/validate-execution-plan.mjs
 ```
 
-Require both commands to exit `0` and return `valid: true` with no diagnostics; require Markdown Engine `evidence.engineVersion` to match the Fleet-approved shared runtime (currently `3.8.0`). The profile owns Markdown-native metadata, including exact `type: ExecutionPlan`, non-blank required values, the exact artifact version, reserved and duplicate lifecycle-field exclusions, section order, placeholder checks, exact table schemas, total table cardinality, per-schema row bounds through `selectionCount`, and generic action/gate/phase/precondition ID coverage through `tableColumnCoverage`. The execution-plan validator consumes Markdown Engine's normalized document and owns nonempty cells, explicit reference columns, enums, lifecycle consistency, route/detail correspondence, prior-step references, ordered phase membership, and gate-terminated phase exits. Unknown producer-owned frontmatter keys remain valid. It does not reconstruct a dependency graph: `Execution Route` source order is the executable sequence. Neither validator replaces the semantic route audit. If a compatible runtime or validator is unavailable, do not invent a fallback or claim `READY`.
+Require both commands to exit `0` and return `valid: true` with no diagnostics; require Markdown Engine `evidence.engineVersion` to match the Fleet-approved shared runtime. The profile owns Markdown-native metadata, including exact `type: ExecutionPlan`, non-blank required values, the exact artifact version, reserved and duplicate lifecycle-field exclusions, section order, placeholder checks, exact table schemas, total table cardinality, per-schema row bounds through `selectionCount`, and generic action/gate/phase/precondition ID coverage through `tableColumnCoverage`. The execution-plan validator consumes Markdown Engine's normalized document and owns nonempty cells, explicit reference columns, enums, lifecycle consistency, route/detail correspondence, prior-step references, ordered phase membership, and gate-terminated phase exits. Unknown producer-owned frontmatter keys remain valid. It does not reconstruct a dependency graph: `Execution Route` source order is the executable sequence. Neither validator replaces the semantic route audit. If a compatible runtime or validator is unavailable, do not invent a fallback or claim `READY`.
 
 Prefer compact validation output when available. For summary output, use `diagnosticCounts.total` to check the complete count, and open `report.path` only when omitted details are needed. Use `--report-file <new-file>` for durable evidence because automatic cache reports expire; scripts inspecting every rule result or comparing JSON bytes must request `--output full`. The normalization command piped into the plan validator remains unchanged.
 
@@ -286,7 +305,7 @@ Return:
 
 Do not replace the durable artifact with a chat-only plan summary.
 
-Any execution or review handoff must include the exact plan path and every controlling source path or reference, with an instruction to read them before acting. The plan is not standalone authority.
+Any handoff identifies the exact plan, controlling sources and their fingerprints. State the reading mode: complete for authors, reviewers and coordinators; complete or supervisor-verified scoped selection for bounded workers under Context economy. Specify required selections and conditional-read triggers. The plan is not standalone authority.
 
 ## Reference Files
 

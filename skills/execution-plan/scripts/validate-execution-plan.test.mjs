@@ -62,8 +62,8 @@ function hasFailedProfileRule(result, ruleId) {
 function twoPhasePlan() {
   return example
     .replace(
-      "| EP-PH-1 | Add dry-run through the existing selection and mutation boundary and prove both modes. | EP-PRE-1 | The CLI supports dry-run, normal behavior remains green, and no unvalidated generated output remains. |",
-      "| EP-PH-1 | Implement and type-check the route. | EP-PRE-1 | The implementation is type-safe. |\n| EP-PH-2 | Add and run behavioral proof. | EP-PRE-2 | The focused and regression behavior passes. |",
+      "| [EP-PH-1](ctx://trace/entity/EP-PH-1?role=definition) | Add dry-run through the existing selection and mutation boundary and prove both modes. | EP-PRE-1 | The CLI supports dry-run, normal behavior remains green, and no unvalidated generated output remains. |",
+      "| [EP-PH-1](ctx://trace/entity/EP-PH-1?role=definition) | Implement and type-check the route. | EP-PRE-1 | The implementation is type-safe. |\n| [EP-PH-2](ctx://trace/entity/EP-PH-2?role=definition) | Add and run behavioral proof. | EP-PRE-2 | The focused and regression behavior passes. |",
     )
     .replace("| EP-ACT-2 | action | EP-PH-1 | EP-GATE-1 |", "| EP-ACT-2 | action | EP-PH-2 | EP-GATE-1 |")
     .replace("| EP-GATE-2 | gate | EP-PH-1 | EP-ACT-2 |", "| EP-GATE-2 | gate | EP-PH-2 | EP-ACT-2 |");
@@ -79,7 +79,7 @@ test("accepts the worked example and preserves its explicit route", () => {
 test("structural profile accepts the worked example with every rule evaluated on the approved runtime", () => {
   const result = validateProfile(example);
   assert.equal(result.valid, true);
-  assert.equal(result.evidence.engineVersion, process.env.MARKDOWN_ENGINE_EXPECTED_VERSION ?? "3.8.0");
+  assert.equal(result.evidence.engineVersion, process.env.MARKDOWN_ENGINE_EXPECTED_VERSION ?? "4.0.0");
   assert.equal(result.profile.ruleCount, 38);
   assert.equal(result.profile.evaluatedRuleCount, 38);
   assert.equal(result.profile.skippedRuleCount, 0);
@@ -150,20 +150,20 @@ test("rejects a malformed route phase", () => {
 });
 
 test("rejects an action with no outcome mapping", () => {
-  const result = validate(example.replace("| EP-ACT-1 | EP-PRE-1 | EP-OUT-1 |", "| EP-ACT-1 | EP-PRE-1 | None |"));
+  const result = validate(example.replace("| [EP-ACT-1](ctx://trace/entity/EP-ACT-1?role=definition) | EP-PRE-1 | [EP-OUT-1](ctx://trace/entity/EP-OUT-1?rel=implements) |", "| [EP-ACT-1](ctx://trace/entity/EP-ACT-1?role=definition) | EP-PRE-1 | None |"));
   assert.equal(result.valid, false);
   assert.ok(hasDiagnostic(result, "plan.invalid-reference-list", { column: "Outcome IDs" }));
 });
 
 test("rejects a gate with no outcome mapping", () => {
-  const result = validate(example.replace("| EP-GATE-1 | EP-OUT-1 |", "| EP-GATE-1 | None |"));
+  const result = validate(example.replace("| [EP-GATE-1](ctx://trace/entity/EP-GATE-1?role=definition) | [EP-OUT-1](ctx://trace/entity/EP-OUT-1?rel=verifies) |", "| [EP-GATE-1](ctx://trace/entity/EP-GATE-1?role=definition) | None |"));
   assert.equal(result.valid, false);
   assert.ok(hasDiagnostic(result, "plan.invalid-reference-list", { column: "Outcome IDs" }));
 });
 
 test("rejects invalid decision semantics and dangling decision references", () => {
   const invalid = example
-    .replace("| EP-DEC-1 | decision |", "| EP-DEC-1 | tentative |")
+    .replace("| [EP-DEC-1](ctx://trace/entity/EP-DEC-1?role=definition) | decision |", "| [EP-DEC-1](ctx://trace/entity/EP-DEC-1?role=definition) | tentative |")
     .replace("| EP-FIND-1, EP-FIND-3 |", "| EP-FIND-404 |")
     .replace("| EP-ACT-1, EP-ACT-2 | EP-TRIG-1 |", "| EP-ACT-404 | EP-TRIG-404 |");
   const result = validate(invalid);
@@ -173,13 +173,13 @@ test("rejects invalid decision semantics and dangling decision references", () =
 });
 
 test("rejects an outcome anchor with an undeclared source", () => {
-  const result = validate(example.replace("| EP-OUT-1 | EP-SRC-1 | A1 |", "| EP-OUT-1 | EP-SRC-404 | A1 |"));
+  const result = validate(example.replace("| [EP-OUT-1](ctx://trace/entity/EP-OUT-1?role=definition) | EP-SRC-1 | A1 |", "| [EP-OUT-1](ctx://trace/entity/EP-OUT-1?role=definition) | EP-SRC-404 | A1 |"));
   assert.equal(result.valid, false);
   assert.ok(hasDiagnostic(result, "plan.dangling-reference", { column: "Source IDs" }));
 });
 
 test("rejects an empty core cell", () => {
-  const result = validate(example.replace("| EP-ACT-1 | EP-PRE-1 | EP-OUT-1 |", "| EP-ACT-1 |  | EP-OUT-1 |"));
+  const result = validate(example.replace("| [EP-ACT-1](ctx://trace/entity/EP-ACT-1?role=definition) | EP-PRE-1 | [EP-OUT-1](ctx://trace/entity/EP-OUT-1?rel=implements) |", "| [EP-ACT-1](ctx://trace/entity/EP-ACT-1?role=definition) |  | [EP-OUT-1](ctx://trace/entity/EP-OUT-1?rel=implements) |"));
   assert.equal(result.valid, false);
   assert.ok(hasDiagnostic(result, "plan.empty-cell"));
 });
@@ -221,7 +221,7 @@ test("required validator pair rejects malformed stopped-step references", () => 
 
 test("structural profile rejects a second authority table in Plan Control", () => {
   const duplicate = "\n| Plan state | Planning depth | Source status | Baseline status | State rationale |\n| --- | --- | --- | --- | --- |\n| BLOCKED | compact | missing | unavailable | Duplicate. |\n";
-  const result = validateProfile(example.replace("\n## Source Contract", `${duplicate}\n## Source Contract`));
+  const result = validateProfile(example.replace("\n## [Source Contract](ctx://trace/entity/CTX-3?role=definition)", `${duplicate}\n## [Source Contract](ctx://trace/entity/CTX-3?role=definition)`));
   assert.equal(result.valid, false);
   assert.ok(hasFailedProfileRule(result, "tables.total.exact"));
 });
@@ -229,12 +229,12 @@ test("structural profile rejects a second authority table in Plan Control", () =
 test("structural profile rejects malformed extra tables in contracted sections", () => {
   const variants = [
     example.replace(
-      "\n## Change Footprint",
-      "\n| Action ID | Concrete action |\n| --- | --- |\n| EP-ACT-EXTRA | Delete cache contents before validating the dry-run path. |\n\n## Change Footprint",
+      "\n## [Change Footprint](ctx://trace/entity/CTX-11?role=definition)",
+      "\n| Action ID | Concrete action |\n| --- | --- |\n| EP-ACT-EXTRA | Delete cache contents before validating the dry-run path. |\n\n## [Change Footprint](ctx://trace/entity/CTX-11?role=definition)",
     ),
     example.replace(
-      "\n## Execution Actions",
-      "\n| Step ID | Kind | Phase ID | Required prior Step IDs | Note |\n| --- | --- | --- | --- | --- |\n| EP-ACT-3 | action | EP-PH-1 | EP-GATE-2 | Conflicting route declaration. |\n\n## Execution Actions",
+      "\n## [Execution Actions](ctx://trace/entity/CTX-10?role=definition)",
+      "\n| Step ID | Kind | Phase ID | Required prior Step IDs | Note |\n| --- | --- | --- | --- | --- |\n| EP-ACT-3 | action | EP-PH-1 | EP-GATE-2 | Conflicting route declaration. |\n\n## [Execution Actions](ctx://trace/entity/CTX-10?role=definition)",
     ),
   ];
   for (const variant of variants) {
@@ -245,7 +245,7 @@ test("structural profile rejects malformed extra tables in contracted sections",
 });
 
 test("structural profile rejects an empty contracted table", () => {
-  const invalid = example.split("\n").filter((line) => !line.startsWith("| EP-SRC-")).join("\n");
+  const invalid = example.split("\n").filter((line) => !line.startsWith("| [EP-SRC-")).join("\n");
   const result = validateProfile(invalid);
   assert.equal(result.valid, false);
   assert.ok(hasFailedProfileRule(result, "rows.source-contract.count"));
@@ -264,9 +264,9 @@ test("structural profile enforces single-row lifecycle authorities", () => {
 });
 
 test("structural profile rejects a contracted row-count overflow", () => {
-  const sourceRow = example.split("\n").find((line) => line.startsWith("| EP-SRC-1 |"));
-  const extraRows = Array.from({ length: 29 }, (_, index) => sourceRow.replace("EP-SRC-1", `EP-SRC-X${index}`)).join("\n");
-  const invalid = example.replace("\n\n## Outcome Anchors", `\n${extraRows}\n\n## Outcome Anchors`);
+  const sourceRow = example.split("\n").find((line) => line.startsWith("| [EP-SRC-1](ctx://trace/entity/EP-SRC-1?role=definition) |"));
+  const extraRows = Array.from({ length: 29 }, (_, index) => sourceRow.replaceAll("EP-SRC-1", `EP-SRC-X${index}`)).join("\n");
+  const invalid = example.replace("\n\n## [Outcome Anchors](ctx://trace/entity/CTX-4?role=definition)", `\n${extraRows}\n\n## [Outcome Anchors](ctx://trace/entity/CTX-4?role=definition)`);
   const result = validateProfile(invalid);
   assert.equal(result.valid, false);
   assert.ok(hasFailedProfileRule(result, "rows.source-contract.count"));
@@ -287,12 +287,12 @@ test("structural profile owns exact table-header enforcement", () => {
 test("structural profile owns outcome and precondition coverage", () => {
   const invalid = example
     .replace(
-      "\n\n## Baseline Findings",
-      "\n| EP-OUT-3 | EP-SRC-1 | A3 | An intentionally unassigned observable. | A focused proof would be required. |\n\n## Baseline Findings",
+      "\n\n## [Baseline Findings](ctx://trace/entity/CTX-5?role=definition)",
+      "\n| [EP-OUT-3](ctx://trace/entity/EP-OUT-3?role=definition) | EP-SRC-1 | A3 | An intentionally unassigned observable. | A focused proof would be required. |\n\n## [Baseline Findings](ctx://trace/entity/CTX-5?role=definition)",
     )
     .replace(
-      "\n\n## Implementation Decisions",
-      "\n| EP-PRE-3 | A deferred optional check is not required by this route. | Confirm the deferred check remains outside the route. | EP-TRIG-1 |\n\n## Implementation Decisions",
+      "\n\n## [Implementation Decisions](ctx://trace/entity/CTX-7?role=definition)",
+      "\n| EP-PRE-3 | A deferred optional check is not required by this route. | Confirm the deferred check remains outside the route. | EP-TRIG-1 |\n\n## [Implementation Decisions](ctx://trace/entity/CTX-7?role=definition)",
     );
   const structural = validateProfile(invalid);
   const relational = validate(invalid);
@@ -313,7 +313,7 @@ test("structural profile owns phase coverage", () => {
 });
 
 test("rejects READY when a source row is stale", () => {
-  const result = validate(example.replace("| EP-SRC-1 | Issue 42, acceptance rows A1 and A2 | revision 3 | Controls observable behavior and proof obligations. | current |", "| EP-SRC-1 | Issue 42, acceptance rows A1 and A2 | revision 3 | Controls observable behavior and proof obligations. | stale |"));
+  const result = validate(example.replace("| [EP-SRC-1](ctx://trace/entity/EP-SRC-1?role=definition) | Issue 42, acceptance rows A1 and A2 | revision 3 | Controls observable behavior and proof obligations. | current |", "| [EP-SRC-1](ctx://trace/entity/EP-SRC-1?role=definition) | Issue 42, acceptance rows A1 and A2 | revision 3 | Controls observable behavior and proof obligations. | stale |"));
   assert.equal(result.valid, false);
   assert.ok(hasDiagnostic(result, "plan.source-status-mismatch"));
   assert.ok(hasDiagnostic(result, "plan.ready-with-noncurrent-source"));
@@ -326,14 +326,14 @@ test("rejects READY with an uninspected baseline", () => {
 });
 
 test("rejects PASS with a remaining blocker", () => {
-  const result = validate(example.replace("| None. |\n\n## Revision Log", "| Critical unresolved blocker. |\n\n## Revision Log"));
+  const result = validate(example.replace("| None. |\n\n## [Revision Log](ctx://trace/entity/CTX-15?role=definition)", "| Critical unresolved blocker. |\n\n## [Revision Log](ctx://trace/entity/CTX-15?role=definition)"));
   assert.equal(result.valid, false);
   assert.ok(hasDiagnostic(result, "plan.pass-with-blocker"));
 });
 
 test("rejects dangling unmet and escalation triggers", () => {
   const invalid = example
-    .replace("| EP-TRIG-1 |\n\n## Implementation Decisions", "| EP-TRIG-404 |\n\n## Implementation Decisions")
+    .replace("| EP-TRIG-1 |\n\n## [Implementation Decisions](ctx://trace/entity/CTX-7?role=definition)", "| EP-TRIG-404 |\n\n## [Implementation Decisions](ctx://trace/entity/CTX-7?role=definition)")
     .replace("| EP-TRIG-1 |\n\n| Trigger ID", "| EP-TRIG-405 |\n\n| Trigger ID");
   const result = validate(invalid);
   assert.equal(result.valid, false);
@@ -358,7 +358,7 @@ test("rejects a route kind that disagrees with its detail ID", () => {
 });
 
 test("rejects a route step without a detail row", () => {
-  const actionRow = example.split("\n").find((line) => line.startsWith("| EP-ACT-2 | EP-PRE-2 |"));
+  const actionRow = example.split("\n").find((line) => line.startsWith("| [EP-ACT-2](ctx://trace/entity/EP-ACT-2?role=definition) | EP-PRE-2 |"));
   const result = validate(example.replace(`\n${actionRow}`, ""));
   assert.equal(result.valid, false);
   assert.ok(hasDiagnostic(result, "plan.route-detail-mismatch"));
