@@ -6,6 +6,7 @@ MARKDOWN_TRACE_BIN binding; these tests neither install nor select a runtime.
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -40,7 +41,7 @@ class TraceAuthoring(unittest.TestCase):
         if info.returncode:
             raise RuntimeError(info.stderr)
         cls.identity = json.loads(info.stdout)
-        if cls.identity['packageVersion'] != '0.1.1':
+        if cls.identity['packageVersion'] != '0.1.2':
             raise RuntimeError('Requalify this profile against the selected Trace release.')
         cls.original = (ROOT / EXAMPLES[0]).read_text()
         print('Trace source:', cls.identity['sourceCommit'])
@@ -87,6 +88,34 @@ class TraceAuthoring(unittest.TestCase):
 
     def test_unannotated_heading_is_located(self):
         self.defect(HEADING, HEADING_LABEL, 'heading-definitions')
+
+    def test_exact_text_view_retains_the_machine_report(self):
+        args = ['--direction', 'outgoing', '--relation', RELATION,
+                '--max-depth', '2', '--max-nodes', '20', '--max-fragments', '80',
+                '--max-utf8-bytes', '24000']
+        for root in ROOTS:
+            args += ['--root', root]
+        with tempfile.TemporaryDirectory() as directory:
+            document = Path(directory) / 'artifact.md'
+            retained = Path(directory) / 'context-report.json'
+            document.write_text(self.original)
+            command = self.command + ['--file', str(document), '--profile',
+                str(ROOT / 'profiles/trace.json'), *args]
+            machine = subprocess.run(command + ['--format', 'context'], capture_output=True)
+            text = subprocess.run(command + ['--format', 'context-text', '--report-file',
+                str(retained)], capture_output=True)
+            self.assertEqual(machine.returncode, 0, machine.stderr)
+            self.assertEqual(text.returncode, 0, text.stderr)
+            self.assertEqual(text.stderr, b'')
+            self.assertEqual(retained.read_bytes(), machine.stdout)
+            report = json.loads(machine.stdout)
+            excerpts = [match[1] for match in re.findall(
+                rb'^(`{3,})text\n([\s\S]*?)\n\1\n', text.stdout, re.M)]
+            self.assertEqual(excerpts, [part['text'].encode() for part in report['context']['parts']])
+            self.assertIn(REQUIRED_TEXT.encode(), text.stdout)
+            self.assertIn(hashlib.sha256(machine.stdout).hexdigest().encode(), text.stdout)
+            self.assertIn(b'Required-context completeness: not evaluated', text.stdout)
+            self.assertLess(len(text.stdout), len(machine.stdout))
 
     def test_exact_scoped_context_and_budget_omission(self):
         args = ['--format', 'context', '--direction', 'outgoing', '--relation', RELATION,
