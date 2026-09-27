@@ -43,7 +43,7 @@ function runCli(markdown) {
 }
 
 function validateProfile(markdown) {
-  const result = spawnSync(markdownEnginePath, ["validate", "--file", writeFixture(markdown), "--profile", profilePath, "--format", "json"], {
+  const result = spawnSync(markdownEnginePath, ["validate", "--file", writeFixture(markdown), "--profile", profilePath, "--format", "json", "--output", "full"], {
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
   });
@@ -76,10 +76,10 @@ test("accepts the worked example and preserves its explicit route", () => {
   assert.deepEqual(result.evidence.routeOrder, ["EP-ACT-1", "EP-GATE-1", "EP-ACT-2", "EP-GATE-2"]);
 });
 
-test("structural profile accepts the worked example with every 3.6.0 rule evaluated", () => {
+test("structural profile accepts the worked example with every rule evaluated on the approved runtime", () => {
   const result = validateProfile(example);
   assert.equal(result.valid, true);
-  assert.equal(result.evidence.engineVersion, "3.6.0");
+  assert.equal(result.evidence.engineVersion, process.env.MARKDOWN_ENGINE_EXPECTED_VERSION ?? "3.8.0");
   assert.equal(result.profile.ruleCount, 38);
   assert.equal(result.profile.evaluatedRuleCount, 38);
   assert.equal(result.profile.skippedRuleCount, 0);
@@ -214,7 +214,7 @@ test("required validator pair rejects malformed stopped-step references", () => 
     const cli = runCli(invalid);
     assert.equal(cli.status, 1, cli.stderr);
     assert.ok(JSON.parse(cli.stdout).diagnostics.some(({ code, column }) => ["plan.invalid-reference-list", "plan.dangling-reference"].includes(code) && column === "Stopped Step IDs"));
-    const structural = spawnSync(markdownEnginePath, ["validate", "--file", writeFixture(invalid), "--profile", profilePath, "--format", "json"], { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
+    const structural = spawnSync(markdownEnginePath, ["validate", "--file", writeFixture(invalid), "--profile", profilePath, "--format", "json", "--output", "full"], { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
     assert.equal(cli.status === 0 && structural.status === 0, false);
   }
 });
