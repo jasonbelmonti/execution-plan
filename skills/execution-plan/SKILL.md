@@ -86,6 +86,17 @@ Keep the core schema stable and calibrate the detail inside it:
 
 Choose depth from the explanation needed to resolve route uncertainty and consequential failure. Breadth or a risk-category label alone does not set document length. Split the plan when unrelated routes have different completion contracts, owners, or safe execution boundaries.
 
+## Trace-compatible authoring
+
+For new complete artifacts and authorized material revisions, read
+[Trace authoring](references/trace-authoring.md) and use the owned
+[Trace profile](profiles/trace.json). Add stable definitions and meaningful
+relationships while preserving visible headings, ID labels and existing schemas.
+Run Trace alongside the existing structural and semantic gates before claiming
+readiness. This requirement applies to complete authored artifacts, not partial
+blocked responses or untouched historical documents. Review remains read-only;
+report legacy annotation gaps before promising scoped extraction.
+
 ## Context economy
 
 Aim for 800–1,500 words for a compact plan; this is an advisory relevance-review trigger, not a correctness limit. Preserve the schema and route gates. State source requirements once in their owning contract and use outcome IDs here. Actions contribute the change and postcondition; gates contribute the proof procedure. Share recovery/evidence instructions by IDs instead of repeating them in each row. Do not invent alternative designs, operational sections or speculative future steps for completeness.

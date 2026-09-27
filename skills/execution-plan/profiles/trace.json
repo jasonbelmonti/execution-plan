@@ -1,0 +1,274 @@
+{
+  "schemaVersion": "markdown-trace.validation-profile.experimental.v1",
+  "profileId": "execution-plan-authoring-v1",
+  "interpretation": {
+    "language": "markdown-trace.identity.draft2",
+    "entityKinds": [
+      {
+        "name": "context",
+        "prefixes": [
+          "CTX"
+        ]
+      },
+      {
+        "name": "plan-item",
+        "prefixes": [
+          "EP"
+        ]
+      }
+    ]
+  },
+  "validation": {
+    "minEntities": 1,
+    "allowedRelations": [
+      {
+        "kind": "references",
+        "from": [
+          "context",
+          "plan-item"
+        ],
+        "to": [
+          "context",
+          "plan-item"
+        ]
+      },
+      {
+        "kind": "implements",
+        "from": [
+          "plan-item"
+        ],
+        "to": [
+          "plan-item"
+        ]
+      },
+      {
+        "kind": "verifies",
+        "from": [
+          "plan-item"
+        ],
+        "to": [
+          "plan-item"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "id": "heading-definitions",
+        "op": "declarations",
+        "kinds": [
+          "context",
+          "plan-item"
+        ],
+        "select": {
+          "target": "node",
+          "nodeType": "heading"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": false,
+        "exclusive": false
+      },
+      {
+        "id": "source-id-definitions",
+        "op": "declarations",
+        "kinds": [
+          "plan-item"
+        ],
+        "select": {
+          "target": "tableCell",
+          "section": "Source Contract",
+          "column": "Source ID"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": true,
+        "exclusive": false
+      },
+      {
+        "id": "outcome-id-definitions",
+        "op": "declarations",
+        "kinds": [
+          "plan-item"
+        ],
+        "select": {
+          "target": "tableCell",
+          "section": "Outcome Anchors",
+          "column": "Outcome ID"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": true,
+        "exclusive": false
+      },
+      {
+        "id": "finding-id-definitions",
+        "op": "declarations",
+        "kinds": [
+          "plan-item"
+        ],
+        "select": {
+          "target": "tableCell",
+          "section": "Baseline Findings",
+          "column": "Finding ID"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": true,
+        "exclusive": false
+      },
+      {
+        "id": "precondition-id-definitions",
+        "op": "declarations",
+        "kinds": [
+          "plan-item"
+        ],
+        "select": {
+          "target": "tableCell",
+          "section": "Preconditions",
+          "column": "Precondition ID"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": true,
+        "exclusive": false
+      },
+      {
+        "id": "decision-id-definitions",
+        "op": "declarations",
+        "kinds": [
+          "plan-item"
+        ],
+        "select": {
+          "target": "tableCell",
+          "section": "Implementation Decisions",
+          "column": "Decision ID"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": true,
+        "exclusive": false
+      },
+      {
+        "id": "phase-id-definitions",
+        "op": "declarations",
+        "kinds": [
+          "plan-item"
+        ],
+        "select": {
+          "target": "tableCell",
+          "section": "Execution Phases",
+          "column": "Phase ID"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": true,
+        "exclusive": false
+      },
+      {
+        "id": "action-id-definitions",
+        "op": "declarations",
+        "kinds": [
+          "plan-item"
+        ],
+        "select": {
+          "target": "tableCell",
+          "section": "Execution Actions",
+          "column": "Action ID"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": true,
+        "exclusive": false
+      },
+      {
+        "id": "gate-id-definitions",
+        "op": "declarations",
+        "kinds": [
+          "plan-item"
+        ],
+        "select": {
+          "target": "tableCell",
+          "section": "Validation Gates",
+          "column": "Gate ID"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": true,
+        "exclusive": false
+      },
+      {
+        "id": "response-id-definitions",
+        "op": "declarations",
+        "kinds": [
+          "plan-item"
+        ],
+        "select": {
+          "target": "tableCell",
+          "section": "Failure and Replan Controls",
+          "column": "Response ID"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": true,
+        "exclusive": false
+      },
+      {
+        "id": "trigger-id-definitions",
+        "op": "declarations",
+        "kinds": [
+          "plan-item"
+        ],
+        "select": {
+          "target": "tableCell",
+          "section": "Failure and Replan Controls",
+          "column": "Trigger ID"
+        },
+        "min": 1,
+        "max": 1,
+        "minSelections": 1,
+        "matchText": true,
+        "exclusive": false
+      },
+      {
+        "id": "implements-outcomes",
+        "op": "references",
+        "relation": "implements",
+        "select": {
+          "target": "tableCell",
+          "section": "Execution Actions",
+          "column": "Outcome IDs"
+        },
+        "min": 1,
+        "max": null,
+        "minSelections": 1,
+        "matchText": false,
+        "exclusive": false
+      },
+      {
+        "id": "verifies-outcomes",
+        "op": "references",
+        "relation": "verifies",
+        "select": {
+          "target": "tableCell",
+          "section": "Validation Gates",
+          "column": "Outcome IDs"
+        },
+        "min": 1,
+        "max": null,
+        "minSelections": 1,
+        "matchText": false,
+        "exclusive": false
+      }
+    ]
+  }
+}
