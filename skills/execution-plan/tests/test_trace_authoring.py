@@ -117,6 +117,74 @@ class TraceAuthoring(unittest.TestCase):
             self.assertIn(b'Required-context completeness: not evaluated', text.stdout)
             self.assertLess(len(text.stdout), len(machine.stdout))
 
+    def test_stable_report_reuse_and_changed_source_regeneration(self):
+        args = ['--direction', 'outgoing', '--relation', RELATION,
+                '--max-depth', '2', '--max-nodes', '20', '--max-fragments', '80',
+                '--max-utf8-bytes', '24000']
+        for root in ROOTS:
+            args += ['--root', root]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            retained_root = root / 'execution'
+            staging_root = root / 'cache'
+            retained_root.mkdir()
+            staging_root.mkdir()
+            document = root / 'artifact.md'
+            retained = retained_root / 'current-context-report.json'
+            document.write_text(self.original)
+            command = self.command + ['--file', str(document), '--profile',
+                str(ROOT / 'profiles/trace.json'), *args]
+
+            first = subprocess.run(command + ['--format', 'context-text', '--report-file',
+                str(retained)], capture_output=True)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            first_bytes = retained.read_bytes()
+            first_report = json.loads(first_bytes)
+            first_digest = hashlib.sha256(first_bytes).hexdigest()
+            first_inventory = {path.name: path.stat().st_size
+                               for path in retained_root.iterdir() if path.is_file()}
+            self.assertEqual(first_report['context']['source']['sha256'],
+                             hashlib.sha256(document.read_bytes()).hexdigest())
+            self.assertIn(first_digest.encode(), first.stdout)
+
+            repeated_source_digest = hashlib.sha256(document.read_bytes()).hexdigest()
+            self.assertEqual(repeated_source_digest,
+                             first_report['context']['source']['sha256'])
+            repeated_bytes = retained.read_bytes()
+            repeated_inventory = {path.name: path.stat().st_size
+                                  for path in retained_root.iterdir() if path.is_file()}
+            self.assertEqual(repeated_bytes, first_bytes)
+            self.assertEqual(repeated_inventory, first_inventory)
+            self.assertEqual(len(repeated_inventory), 1)
+            self.assertEqual(sum(repeated_inventory.values()), len(first_bytes))
+            repeated_output_bytes = 0
+            self.assertEqual(repeated_output_bytes, 0)
+            self.assertLess(len(first.stdout), len(first_bytes))
+
+            document.write_text(self.original.replace(
+                'This fictional plan demonstrates',
+                'This changed fictional plan demonstrates', 1))
+            self.assertNotEqual(hashlib.sha256(document.read_bytes()).hexdigest(),
+                                first_report['context']['source']['sha256'])
+            staged = staging_root / 'next-context-report.json'
+            changed = subprocess.run(command + ['--format', 'context-text', '--report-file',
+                str(staged)], capture_output=True)
+            self.assertEqual(changed.returncode, 0, changed.stderr)
+            changed_bytes = staged.read_bytes()
+            changed_report = json.loads(changed_bytes)
+            self.assertNotEqual(changed_bytes, first_bytes)
+            self.assertNotEqual(changed_report['context']['source']['sha256'],
+                                first_report['context']['source']['sha256'])
+            self.assertNotIn(first_digest.encode(), changed.stdout)
+            self.assertIn(hashlib.sha256(changed_bytes).hexdigest().encode(), changed.stdout)
+            staged.replace(retained)
+            changed_inventory = {path.name: path.stat().st_size
+                                 for path in retained_root.iterdir() if path.is_file()}
+            self.assertEqual(set(changed_inventory), {retained.name})
+            self.assertEqual(sum(changed_inventory.values()), len(changed_bytes))
+            self.assertEqual(list(staging_root.iterdir()), [])
+            self.assertLess(len(changed.stdout), len(changed_bytes))
+
     def test_exact_scoped_context_and_budget_omission(self):
         args = ['--format', 'context', '--direction', 'outgoing', '--relation', RELATION,
                 '--max-depth', '2', '--max-nodes', '20', '--max-fragments', '80']

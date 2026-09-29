@@ -105,6 +105,8 @@ Use assignment-specific reading for authors, reviewers, coordinators and workers
 
 At kickoff or resume, verify current source identities and inspect the assignment, required selections and relevant changes. Reassess affected selections after source changes; a digest check does not prove semantic coverage. Reuse unchanged content already inspected in the active context.
 
+When a capsule or equivalent retained workflow uses `execution/plan.md`, treat it as one compact current-state entrypoint, not as another canonical Execution Plan. Refresh that path in place with the current authority and source fingerprints, canonical plan and checksum identity, repository and tested-code identities, applicable decisions and route position, remaining work or explicit completion, current proof locators and digests, and every unresolved failure or blocker. Reference each canonical plan, receipt, admission record, report, inventory or failure artifact once instead of copying its body. Keep disposable normalization, search and rendering caches outside retained `execution/`; preserve independently required machine records and failure evidence at their canonical paths.
+
 ## Conditional Reference Loading
 
 Before creating, materially revising, or reviewing a plan:
@@ -123,13 +125,14 @@ Do not inspect validator runtime code unless validation behavior itself is being
 
 Writing a plan does not load it into later model context. At kickoff, handoff, resume after compression, revision, or review:
 
-1. Read the current plan sections required for the operation, including its control state, assigned route, applicable gates and dependencies; cover all sections for a whole-plan review.
-2. Verify `execution-plan.sha256` when present.
-3. Inspect applicable source-contract content and repository instructions, reusing verified unchanged reads in the active context.
-4. Compare the recorded source fingerprints and repository baseline with current state. Distinguish contract changes, checkpoint-only source updates, expected implementation progress, and unrelated drift using the authoring guide; verify integrity before relying on any comparison.
-5. Treat newer explicit user instructions as higher authority.
-6. Preserve every unowned producer frontmatter key during `REVISE` unless explicit source authority removes it.
-7. When source authority, baseline findings, constraints, validation obligations, or safe ordering changed materially, treat the loaded route as non-executable. In `CREATE` or `REVISE`, move it to `DRAFT` or `BLOCKED` before continuing. In `REVIEW`, report the required state transition externally without mutating the artifact.
+1. When present, inspect the compact `execution/plan.md` current-state entrypoint and resolve the canonical records needed for this assignment. The entrypoint does not override those records or the source contract.
+2. Read the current canonical plan sections required for the operation, including its control state, assigned route, applicable gates and dependencies; cover all sections for a whole-plan review.
+3. Verify `execution-plan.sha256` when present and verify every retained proof digest before relying on it.
+4. Inspect applicable source-contract content and repository instructions, reusing verified unchanged reads in the active context.
+5. Compare the recorded source fingerprints and repository baseline with current state. Distinguish contract changes, checkpoint-only source updates, expected implementation progress, and unrelated drift using the authoring guide; verify integrity before relying on any comparison.
+6. Treat newer explicit user instructions as higher authority.
+7. Preserve every unowned producer frontmatter key during `REVISE` unless explicit source authority removes it.
+8. When source authority, baseline findings, constraints, validation obligations, safe ordering, tested inputs, fixtures, configuration or tool identity changed materially, treat affected route or proof as non-current. In `CREATE` or `REVISE`, move a materially affected route to `DRAFT` or `BLOCKED` before continuing. In `REVIEW`, report the required state transition externally without mutating the artifact.
 
 Do not resume from chat memory or a stale plan. Past gate results must also remain applicable to the current code, tests, fixtures, configuration, and environment. The plan specifies how to assess that applicability; observed results and source comparisons belong in existing execution evidence or a source checkpoint, not in the prospective plan.
 
@@ -306,6 +309,8 @@ Return:
 Do not replace the durable artifact with a chat-only plan summary.
 
 Any handoff identifies the exact plan, controlling sources and their fingerprints. Specify the assignment-specific required selections, coverage rationale and conditional-read triggers for the recipient, regardless of role. The plan is not standalone authority.
+
+For a retained capsule handoff, refresh the single `execution/plan.md` entrypoint described in Context economy. Keep it compact: name the current state and reference canonical records by exact locator and digest. Do not append another full plan, report or inventory when the applicable identities are unchanged. If an applicable identity changed, regenerate or explicitly invalidate the affected reference before handoff.
 
 ## Reference Files
 

@@ -25,6 +25,21 @@ Use this decision test:
 
 Do not require a particular kind of source artifact. Record each source's exact location and fingerprint so a later executor can establish freshness and precedence.
 
+### Compact current-state production
+
+The canonical artifact remains `.codefactory/execution-plans/<plan-id>/execution-plan.md` with its sibling checksum. When a capsule or retained workflow also produces `execution/plan.md`, that file is a compact current-state index, not a second plan or authority source. Refresh the same path in place and include:
+
+- current authority locators and fingerprints
+- canonical plan locator, checksum, revision and lifecycle state
+- repository, baseline, worktree and tested-code identities
+- applicable decisions, current route position and remaining work, or explicit completion
+- current proof locators and digests with the inputs, fixtures, configuration and tool identity that make each result applicable
+- unresolved failures, blockers and diagnostics that a recipient must not miss
+
+Reference each canonical record once; do not copy complete plans, reports, inventories, receipts, admission records or failure artifacts into the index. Keep disposable extraction, normalization, search and rendering caches outside retained `execution/`. Required machine records and failure evidence remain at stable canonical paths and retain their exact bytes.
+
+Refreshing unchanged applicable state must not create another retained full copy. A changed source, selection/profile, fixture, configuration, dependency or tool identity requires regeneration at the canonical path or an explicit stale/invalid marker before the index can present the evidence as current. Filename equality, an unchanged source commit or a matching digest without an applicability comparison is insufficient.
+
 ## Artifact Metadata
 
 Use this frontmatter shape:
@@ -233,6 +248,8 @@ Use the existing `Evidence capture`, `Evidence artifact`, `Evidence verification
 - Name the proof dependencies and the checks to reassess after later edits, on resume, and before the implementation review handoff. Include shared callers and dependencies, test assertions, and expected fixtures. Invalidate affected results when these inputs change or their relevance cannot be established. Preserve old results for diagnosis, exclude them from current proof, and rerun the affected checks before a dependent step or review claim relies on them.
 - Retain unaffected results when an inspected comparison justifies reuse. A documentation edit need not invalidate runtime checks unless it is an input to them; a shared selection change can invalidate multiple output-mode checks. Do not rerun every gate solely because HEAD changed.
 - Keep observed applicability decisions in existing execution evidence or the source's optional checkpoint. The plan remains prospective and gains no execution-status table. Stale evidence alone does not change the completion contract; revise the plan only when its sources or route materially change under the existing rules. In `REVIEW`, report required repairs externally without updating any artifact.
+
+When the source contract requires context-economy proof, capture one compact comparison record that references the detailed inventories rather than embedding them. Measure observed mandatory-reading UTF-8 bytes, newly retained regular-file count and bytes, and repeated-output bytes over the same fixed assignment and obligation set. Record code, source, fixture, configuration and tool identities. Keep text or token estimates separate from observed model usage and cost; never present an estimate as measured usage.
 
 ### Failure and Replan Controls
 
