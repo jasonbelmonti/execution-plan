@@ -101,17 +101,17 @@ report legacy annotation gaps before promising scoped extraction.
 
 Aim for 800–1,500 words for a compact plan; this is an advisory relevance-review trigger, not a correctness limit. Preserve the schema and route gates. State source requirements once in their owning contract and use outcome IDs here. Actions contribute the change and postcondition; gates contribute the proof procedure. Share recovery/evidence instructions by IDs instead of repeating them in each row. Do not invent alternative designs, operational sections or speculative future steps for completeness.
 
-Authors, plan reviewers and the coordinator read the complete plan and controlling sources. Bounded workers may instead read a supervisor-verified selection containing their action details, due gates, prerequisites, applicable decisions, shared invariants and source obligations. The supervisor inspects full sources, checks dependency closure and records immutable identities, exact selections and omission rationale. The full plan remains the sequencing authority. Honor explicit upstream full-read mandates; when coverage or authorization is uncertain, use full reads. Whole-plan review is not a scoped worker assignment.
+Use assignment-specific reading for authors, reviewers, coordinators and workers. Inspect the plan and source sections needed for the assigned actions, due gates, prerequisites, applicable decisions, shared invariants and source obligations. Use inventories, search, exact selections and change comparisons, expanding unresolved dependencies. A supervisor verifies coverage and records source identities and exact selections without a prerequisite to read every source in full. Whole-plan review covers the complete plan; linked sources require their applicable content. The plan remains sequencing authority. Read whole sources when coverage or cost makes that appropriate, or when explicitly requested by the user; generic role-based full-read mandates are not a prerequisite.
 
-The complete-read rules below apply to authors/reviewers/coordinators and execution without a verified scoped handoff. A scoped worker verifies current source identities and reads its packet and selections at kickoff or resume. Any source change stops reliance on the old selection until reconciled; a digest check does not prove semantic coverage.
+At kickoff or resume, verify current source identities and inspect the assignment, required selections and relevant changes. Reassess affected selections after source changes; a digest check does not prove semantic coverage. Reuse unchanged content already inspected in the active context.
 
 ## Conditional Reference Loading
 
 Before creating, materially revising, or reviewing a plan:
 
-1. Read [references/execution-plan-authoring-guide.md](references/execution-plan-authoring-guide.md) completely; it defines the exact table schema, ID rules, dependency semantics, route-audit questions, and conditional operational sections.
-2. Read every source that controls completion, scope, constraints, proof, approval, or repository operation.
-3. In `REVISE` or `REVIEW`, read the complete existing plan and verify its checksum before relying on it.
+1. Read the applicable sections of [references/execution-plan-authoring-guide.md](references/execution-plan-authoring-guide.md); it defines the exact table schema, ID rules, dependency semantics, route-audit questions, and conditional operational sections.
+2. Inspect source sections that control the assignment’s completion, scope, constraints, proof, approval, or repository operation; expand unresolved dependencies.
+3. In `REVISE` or `REVIEW`, inspect the current plan within the requested change or review boundary and verify its checksum before relying on it. A whole-plan review must cover every section.
 
 Read [references/example-execution-plan.md](references/example-execution-plan.md) only when a complete artifact example is needed to resolve schema or validation ambiguity.
 
@@ -123,9 +123,9 @@ Do not inspect validator runtime code unless validation behavior itself is being
 
 Writing a plan does not load it into later model context. At kickoff, handoff, resume after compression, revision, or review:
 
-1. Read the complete plan from disk.
+1. Read the current plan sections required for the operation, including its control state, assigned route, applicable gates and dependencies; cover all sections for a whole-plan review.
 2. Verify `execution-plan.sha256` when present.
-3. Reload the controlling source contract and repository instructions.
+3. Inspect applicable source-contract content and repository instructions, reusing verified unchanged reads in the active context.
 4. Compare the recorded source fingerprints and repository baseline with current state. Distinguish contract changes, checkpoint-only source updates, expected implementation progress, and unrelated drift using the authoring guide; verify integrity before relying on any comparison.
 5. Treat newer explicit user instructions as higher authority.
 6. Preserve every unowned producer frontmatter key during `REVISE` unless explicit source authority removes it.
@@ -143,7 +143,7 @@ Keep the same `plan_id` for route revisions that pursue the same completion cont
 
 ### 2. Load and test the source contract
 
-Read every authoritative source directly. Extract only the information needed to constrain execution:
+Inspect authoritative source content relevant to execution, following dependencies when needed. Establish:
 
 - exact outcome or criterion anchors
 - scope and non-goal boundaries
@@ -305,7 +305,7 @@ Return:
 
 Do not replace the durable artifact with a chat-only plan summary.
 
-Any handoff identifies the exact plan, controlling sources and their fingerprints. State the reading mode: complete for authors, reviewers and coordinators; complete or supervisor-verified scoped selection for bounded workers under Context economy. Specify required selections and conditional-read triggers. The plan is not standalone authority.
+Any handoff identifies the exact plan, controlling sources and their fingerprints. Specify the assignment-specific required selections, coverage rationale and conditional-read triggers for the recipient, regardless of role. The plan is not standalone authority.
 
 ## Reference Files
 
