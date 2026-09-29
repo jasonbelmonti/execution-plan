@@ -63,8 +63,9 @@ explicit finite traversal and source budgets; inspect boundaries, omitted IDs an
 exact returned text. A heading root includes only fragments it owns; separately declared child rows,
 list items and subsections need their own roots or traversed edges. Select those
 applicable identities too, or retain a full read. A row does not include the whole
-surrounding section. A source or profile edit invalidates prior selections. Preserve whole-read
-mandates and use full reads whenever coverage or cost favors them.
+surrounding section. A source or profile edit invalidates affected selections until reassessed.
+Use assignment-specific coverage checks; read whole sources when coverage or cost
+favors them, or when the user explicitly requests a whole-document read.
 
 For agent reading, prefer `--format context-text --report-file PATH` with the same
 roots, filters and budgets. Choose a new report path in an existing directory;
@@ -76,8 +77,8 @@ These are local document profiles. For cross-document traversal, a host must cho
 one compatible interpretation and explicit pinned occurrence bindings; profiles
 with different vocabularies cannot simply be combined. A bare matching ID never
 resolves an external source. Delegation admission and total delivery accounting
-remain the receiving workflow's responsibility; these annotations grant no new
-permission to substitute excerpts for full sources.
+remain the receiving workflow's responsibility; annotations alone do not prove
+that selected excerpts cover the assignment’s applicable obligations.
 
 ## Maintainer probes
 
