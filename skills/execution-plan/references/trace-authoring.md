@@ -68,10 +68,22 @@ Use assignment-specific coverage checks; read whole sources when coverage or cos
 favors them, or when the user explicitly requests a whole-document read.
 
 For agent reading, prefer `--format context-text --report-file PATH` with the same
-roots, filters and budgets. Choose a new report path in an existing directory;
-read exact excerpts and compact status first, then retained JSON only when its
-provenance or omitted detail changes a decision. Keep `--format context` for
-machine consumers that parse the JSON. Neither view changes reading obligations.
+roots, filters and budgets. Use one stable canonical report path whose current
+identity covers the source bytes, roots, direction, relation filters, budgets,
+profile or configuration, fixtures and Trace/runtime identity. Reuse that path
+and its compact result without invoking report production when all applicable
+identities are unchanged. For a relevant change, generate a new report in
+disposable staging, verify its source and selection identities and exact bytes,
+then replace the canonical report or mark the old report invalid before any
+consumer presents it as current. Do not weaken create-only report writes or
+remove the prior current report before its replacement is verified. A filename
+or unchanged source commit alone does not prove reuse is safe.
+Read exact excerpts and compact status first, then retained JSON only when its
+provenance or omitted detail changes a decision. The compact result references the
+canonical report and digest once rather than copying the JSON. Keep disposable
+normalization or rendering caches outside retained execution content. Keep
+`--format context` for machine consumers that parse the exact JSON bytes. Neither
+view changes reading obligations.
 
 These are local document profiles. For cross-document traversal, a host must choose
 one compatible interpretation and explicit pinned occurrence bindings; profiles
