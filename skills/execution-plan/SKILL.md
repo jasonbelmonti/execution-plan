@@ -5,6 +5,14 @@ description: "Create, revise, and review validated Execution Plan artifacts that
 
 # Execution Plan
 
+## Artifact placement
+
+New operational artifacts use `.context/execution/` in the executing source worktree. For an assigned capsule, first inspect status and require a valid binding, active run, current-input acknowledgment and no recovery operation; resolve the execution directory from `binding.value.contextWorktreePath` instead of assuming the example root. A recorded legacy `.context-capsule` run keeps that directory and uses its `execution/` subtree. Examples below assume the new `.context` root; substitute the verified bound root for legacy runs.
+
+When a capsule assignment is anticipated, author prerequisite drafts outside source/context worktrees, explicitly capture the required bytes, establish the assignment through the capsule lifecycle, then place canonical artifacts in its execution directory. Startup refuses pre-existing context directories: preserve an unmanaged `.context` and use a fresh isolated source worktree with explicitly staged inputs. Without an assigned capsule, ignored `.context/execution/` is local state and has no checkpoint or handoff retention guarantee.
+
+Keep `execution/plan.md` as the compact current-state index referencing one canonical plan. Input, `records/` and `inherited/` remain runtime-owned. Keep current and legacy operational directories out of source commits; preserve historical `.codefactory` bytes and references without moving them automatically.
+
 ## Overview
 
 Create a durable plan for **how** an executor will reach an already-authoritative completion outcome from a specific baseline. Treat the plan as a source-bounded, replaceable execution hypothesis: it may select internal implementation details and ordering, but it must not create, weaken, or reinterpret the outcome, scope, constraints, proof obligations, or approval boundary supplied by its sources.
@@ -14,13 +22,13 @@ A useful plan lets another capable agent begin with the first action, follow dep
 The artifact path is:
 
 ```text
-./.codefactory/execution-plans/<plan-id>/execution-plan.md
+./.context/execution/execution-plans/<plan-id>/execution-plan.md
 ```
 
 Write its checksum to:
 
 ```text
-./.codefactory/execution-plans/<plan-id>/execution-plan.sha256
+./.context/execution/execution-plans/<plan-id>/execution-plan.sha256
 ```
 
 Every canonical Execution Plan is also a native Open Knowledge Format concept. Its YAML frontmatter must include exact `type: ExecutionPlan` plus the identity, repository, baseline, source-contract, and validation-profile fields defined in the authoring guide. `Plan Control` remains the sole authority for plan state and planning depth: never add frontmatter `status` or `planning_depth`. Never add concept-level `okf_version`; that key is reserved for the OKF bundle-root `index.md`. Preserve every unowned producer frontmatter key during revision unless explicit source authority removes it.
@@ -243,8 +251,8 @@ In `CREATE` or `REVISE`, keep the canonical artifact `DRAFT` while authoring. Af
 
 ```bash
 export MARKDOWN_ENGINE_BIN="${MARKDOWN_ENGINE_BIN:-${MARKDOWN_ENGINE_BIN_DIR:-$HOME/.local/bin}/markdown-engine}"
-"$MARKDOWN_ENGINE_BIN" validate --file ./.codefactory/execution-plans/<plan-id>/execution-plan.candidate.md --profile <skill-dir>/profiles/execution-plan.yaml --format json
-"$MARKDOWN_ENGINE_BIN" --file ./.codefactory/execution-plans/<plan-id>/execution-plan.candidate.md | node <skill-dir>/scripts/validate-execution-plan.mjs
+"$MARKDOWN_ENGINE_BIN" validate --file ./.context/execution/execution-plans/<plan-id>/execution-plan.candidate.md --profile <skill-dir>/profiles/execution-plan.yaml --format json
+"$MARKDOWN_ENGINE_BIN" --file ./.context/execution/execution-plans/<plan-id>/execution-plan.candidate.md | node <skill-dir>/scripts/validate-execution-plan.mjs
 ```
 
 Require both commands to exit `0` and return `valid: true` with no diagnostics; require Markdown Engine `evidence.engineVersion` to match the Fleet-approved shared runtime. The profile owns Markdown-native metadata, including exact `type: ExecutionPlan`, non-blank required values, the exact artifact version, reserved and duplicate lifecycle-field exclusions, section order, placeholder checks, exact table schemas, total table cardinality, per-schema row bounds through `selectionCount`, and generic action/gate/phase/precondition ID coverage through `tableColumnCoverage`. The execution-plan validator consumes Markdown Engine's normalized document and owns nonempty cells, explicit reference columns, enums, lifecycle consistency, route/detail correspondence, prior-step references, ordered phase membership, and gate-terminated phase exits. Unknown producer-owned frontmatter keys remain valid. It does not reconstruct a dependency graph: `Execution Route` source order is the executable sequence. Neither validator replaces the semantic route audit. If a compatible runtime or validator is unavailable, do not invent a fallback or claim `READY`.
@@ -257,7 +265,7 @@ Prefer compact validation output when available. For summary output, use `diagno
 ```bash
 (
 set -eu
-plan_dir=./.codefactory/execution-plans/<plan-id>
+plan_dir=./.context/execution/execution-plans/<plan-id>
 cd "$plan_dir"
 test ! -e execution-plan.previous.md
 test ! -e execution-plan.previous.sha256

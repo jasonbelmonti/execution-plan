@@ -1,0 +1,6 @@
+.worktrees/
+.context/
+.context-capsule/
+.codefactory/
+__pycache__/
+*.pyc

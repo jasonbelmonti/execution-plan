@@ -27,7 +27,7 @@ Do not require a particular kind of source artifact. Record each source's exact 
 
 ### Compact current-state production
 
-The canonical artifact remains `.codefactory/execution-plans/<plan-id>/execution-plan.md` with its sibling checksum. When a capsule or retained workflow also produces `execution/plan.md`, that file is a compact current-state index, not a second plan or authority source. Refresh the same path in place and include:
+The canonical artifact remains `.context/execution/execution-plans/<plan-id>/execution-plan.md` with its sibling checksum. When a capsule or retained workflow also produces `execution/plan.md`, that file is a compact current-state index, not a second plan or authority source. Refresh the same path in place and include:
 
 - current authority locators and fingerprints
 - canonical plan locator, checksum, revision and lifecycle state
